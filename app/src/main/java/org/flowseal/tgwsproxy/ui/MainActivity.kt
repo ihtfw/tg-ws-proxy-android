@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,14 +73,23 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            TgWsProxyTheme {
+            val config = remember { ProxyConfig(this) }
+            var themeMode by remember { mutableStateOf(config.themeMode) }
+
+            TgWsProxyTheme(themeMode = themeMode) {
                 MainScreen(
                     context = this,
                     bound = bound,
                     getService = { proxyService },
                     onStart = { startProxyService() },
                     onStop = { stopProxyService() },
-                    onRestart = { restartProxyService() }
+                    onRestart = { restartProxyService() },
+                    config = config,
+                    themeMode = themeMode,
+                    onThemeModeChanged = { newMode ->
+                        config.themeMode = newMode
+                        themeMode = newMode
+                    }
                 )
             }
         }
@@ -124,18 +135,39 @@ class MainActivity : ComponentActivity() {
 
 // --- Theme ---
 
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF3390EC),
+    onPrimary = Color.White,
+    surface = Color.White,
+    onSurface = Color.Black,
+    surfaceVariant = Color(0xFFF0F2F5),
+    onSurfaceVariant = Color(0xFF707579),
+    outline = Color(0xFFDADCE0),
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF5EA8F0),
+    onPrimary = Color.White,
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color(0xFFE0E0E0),
+    surfaceVariant = Color(0xFF2C2C2C),
+    onSurfaceVariant = Color(0xFFA0A4A8),
+    outline = Color(0xFF444444),
+)
+
+val LocalIsDarkTheme = staticCompositionLocalOf { false }
+
 @Composable
-fun TgWsProxyTheme(content: @Composable () -> Unit) {
-    val colorScheme = lightColorScheme(
-        primary = Color(0xFF3390EC),
-        onPrimary = Color.White,
-        surface = Color.White,
-        onSurface = Color.Black,
-        surfaceVariant = Color(0xFFF0F2F5),
-        onSurfaceVariant = Color(0xFF707579),
-        outline = Color(0xFFDADCE0),
-    )
-    MaterialTheme(colorScheme = colorScheme, content = content)
+fun TgWsProxyTheme(themeMode: String = "system", content: @Composable () -> Unit) {
+    val isDark = when (themeMode) {
+        "dark" -> true
+        "light" -> false
+        else -> isSystemInDarkTheme()
+    }
+    val colorScheme = if (isDark) DarkColorScheme else LightColorScheme
+    CompositionLocalProvider(LocalIsDarkTheme provides isDark) {
+        MaterialTheme(colorScheme = colorScheme, content = content)
+    }
 }
 
 // --- Main Screen ---
@@ -148,9 +180,11 @@ fun MainScreen(
     getService: () -> ProxyService?,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onRestart: () -> Unit
+    onRestart: () -> Unit,
+    config: ProxyConfig,
+    themeMode: String,
+    onThemeModeChanged: (String) -> Unit
 ) {
-    val config = remember { ProxyConfig(context) }
     var showSettings by remember { mutableStateOf(false) }
 
     // Auto-refresh stats
@@ -180,9 +214,9 @@ fun MainScreen(
             TopAppBar(
                 title = { Text("TG WS Proxy") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF3390EC),
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 actions = {
                     IconButton(onClick = { showSettings = !showSettings }) {
@@ -212,7 +246,7 @@ fun MainScreen(
                     Button(
                         onClick = onStart,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3390EC))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(4.dp))
@@ -270,7 +304,7 @@ fun MainScreen(
 
             // Settings panel
             if (showSettings) {
-                SettingsPanel(config, onRestart)
+                SettingsPanel(config, onRestart, themeMode, onThemeModeChanged)
             }
 
             // Logs
@@ -282,7 +316,7 @@ fun MainScreen(
                 )
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5))
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         for (line in logs.takeLast(50)) {
@@ -290,7 +324,8 @@ fun MainScreen(
                                 line,
                                 fontSize = 11.sp,
                                 fontFamily = FontFamily.Monospace,
-                                lineHeight = 14.sp
+                                lineHeight = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -302,11 +337,16 @@ fun MainScreen(
 
 @Composable
 fun StatusCard(isRunning: Boolean, statsText: String, config: ProxyConfig) {
+    val isDark = LocalIsDarkTheme.current
+
+    val runningBg = if (isDark) Color(0xFF1B3A1B) else Color(0xFFE8F5E9)
+    val stoppedBg = if (isDark) Color(0xFF3A2E1B) else Color(0xFFFFF3E0)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isRunning) Color(0xFFE8F5E9) else Color(0xFFFFF3E0)
+            containerColor = if (isRunning) runningBg else stoppedBg
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -322,7 +362,8 @@ fun StatusCard(isRunning: Boolean, statsText: String, config: ProxyConfig) {
                 Spacer(Modifier.width(8.dp))
                 Text(
                     if (isRunning) "Running" else "Stopped",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             if (isRunning) {
@@ -330,14 +371,15 @@ fun StatusCard(isRunning: Boolean, statsText: String, config: ProxyConfig) {
                 Text(
                     "${config.host}:${config.port}",
                     style = MaterialTheme.typography.bodyLarge,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     statsText,
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
-                    color = Color(0xFF707579)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -345,12 +387,19 @@ fun StatusCard(isRunning: Boolean, statsText: String, config: ProxyConfig) {
 }
 
 @Composable
-fun SettingsPanel(config: ProxyConfig, onRestart: () -> Unit) {
+fun SettingsPanel(
+    config: ProxyConfig,
+    onRestart: () -> Unit,
+    themeMode: String,
+    onThemeModeChanged: (String) -> Unit
+) {
     var port by remember { mutableStateOf(config.port.toString()) }
     var dcIps by remember { mutableStateOf(config.dcIps.joinToString("\n")) }
     var poolSize by remember { mutableStateOf(config.poolSize.toString()) }
     var bufKb by remember { mutableStateOf(config.bufKb.toString()) }
     var autostart by remember { mutableStateOf(config.autostart) }
+
+    val themeOptions = listOf("system" to "System", "light" to "Light", "dark" to "Dark")
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -361,6 +410,20 @@ fun SettingsPanel(config: ProxyConfig, onRestart: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text("Settings", style = MaterialTheme.typography.titleMedium)
+
+            // Theme selector
+            Text("Theme", style = MaterialTheme.typography.bodyMedium)
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                themeOptions.forEachIndexed { index, (value, label) ->
+                    SegmentedButton(
+                        selected = themeMode == value,
+                        onClick = { onThemeModeChanged(value) },
+                        shape = SegmentedButtonDefaults.itemShape(index, themeOptions.size)
+                    ) {
+                        Text(label)
+                    }
+                }
+            }
 
             OutlinedTextField(
                 value = port,

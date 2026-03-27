@@ -38,6 +38,11 @@ class ProxyConfig(context: Context) {
         get() = prefs.getBoolean("autostart", false)
         set(value) = prefs.edit().putBoolean("autostart", value).apply()
 
+    /** Theme mode: "system", "light", or "dark" */
+    var themeMode: String
+        get() = prefs.getString("theme_mode", "system") ?: "system"
+        set(value) = prefs.edit().putString("theme_mode", value).apply()
+
     fun parseDcOpt(): Map<Int, String> {
         val result = mutableMapOf<Int, String>()
         for (entry in dcIps) {
