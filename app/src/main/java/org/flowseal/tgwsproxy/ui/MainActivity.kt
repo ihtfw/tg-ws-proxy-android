@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -304,7 +305,7 @@ fun MainScreen(
 
             // Settings panel
             if (showSettings) {
-                SettingsPanel(config, onRestart, themeMode, onThemeModeChanged)
+                SettingsPanel(context, config, onRestart, themeMode, onThemeModeChanged)
             }
 
             // Logs
@@ -388,6 +389,7 @@ fun StatusCard(isRunning: Boolean, statsText: String, config: ProxyConfig) {
 
 @Composable
 fun SettingsPanel(
+    context: Context,
     config: ProxyConfig,
     onRestart: () -> Unit,
     themeMode: String,
@@ -487,6 +489,21 @@ fun SettingsPanel(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Save & Restart")
+            }
+
+            val versionName = remember {
+                try {
+                    context.packageManager.getPackageInfo(context.packageName, 0).versionName
+                } catch (_: Exception) { null }
+            }
+            if (versionName != null) {
+                Text(
+                    "Version $versionName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
