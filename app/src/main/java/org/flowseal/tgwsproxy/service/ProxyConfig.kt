@@ -58,6 +58,11 @@ class ProxyConfig(context: Context) {
         get() = ProxySettings.coerceDomainList(prefs.getString(KEY_CF_USER_DOMAINS, null).orEmpty())
         set(value) = prefs.edit().putString(KEY_CF_USER_DOMAINS, value.joinToString(",")).apply()
 
+    /** Media over HTTP/2 to the CF proxy. */
+    var h2Media: Boolean
+        get() = prefs.getBoolean(KEY_H2, true)
+        set(value) = prefs.edit().putBoolean(KEY_H2, value).apply()
+
     var cfproxyWorkerEnabled: Boolean
         get() = prefs.getBoolean(KEY_CF_WORKER_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_CF_WORKER_ENABLED, value).apply()
@@ -98,6 +103,7 @@ class ProxyConfig(context: Context) {
         cfproxy = cfproxy,
         cfUserDomainEnabled = cfproxyUserDomainEnabled,
         cfUserDomains = cfproxyUserDomains.joinToString(", "),
+        h2Media = h2Media,
         cfWorkerEnabled = cfproxyWorkerEnabled,
         cfWorkerDomains = cfproxyWorkerDomains.joinToString(", "),
         noSecure = noSecure,
@@ -120,6 +126,7 @@ class ProxyConfig(context: Context) {
             .putBoolean(KEY_CFPROXY, draft.cfproxy)
             .putBoolean(KEY_CF_USER_DOMAIN_ENABLED, draft.cfUserDomainEnabled)
             .putString(KEY_CF_USER_DOMAINS, draft.cfUserDomainList().joinToString(","))
+            .putBoolean(KEY_H2, draft.h2Media)
             .putBoolean(KEY_CF_WORKER_ENABLED, draft.cfWorkerEnabled)
             .putString(KEY_CF_WORKER_DOMAINS, draft.cfWorkerDomainList().joinToString(","))
             .putBoolean(KEY_NO_SECURE, draft.noSecure)
@@ -166,6 +173,7 @@ class ProxyConfig(context: Context) {
         private const val KEY_CFPROXY = "cfproxy"
         private const val KEY_CF_USER_DOMAIN_ENABLED = "cfproxy_user_domain_enabled"
         private const val KEY_CF_USER_DOMAINS = "cfproxy_user_domain"
+        private const val KEY_H2 = "h2"
         private const val KEY_CF_WORKER_ENABLED = "cfproxy_worker_enabled"
         private const val KEY_CF_WORKER_DOMAINS = "cfproxy_worker_domain"
         private const val KEY_NO_SECURE = "no_secure"

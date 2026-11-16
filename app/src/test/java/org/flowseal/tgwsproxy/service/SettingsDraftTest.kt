@@ -113,6 +113,18 @@ class SettingsDraftTest {
     }
 
     @Test
+    fun h2Media() {
+        assertTrue(valid.toProxySettings().cfproxyH2Media)
+        assertTrue(valid.toProxySettings().h2Enabled)
+        assertFalse(valid.copy(h2Media = false).toProxySettings().cfproxyH2Media)
+        assertTrue(valid.h2Available)
+        assertFalse(valid.copy(noSecure = true).h2Available)
+        assertFalse(valid.copy(cfproxy = false).h2Available)
+        assertFalse(valid.copy(forceTestDc = true).h2Available)
+        assertFalse(valid.copy(noSecure = true).toProxySettings().h2Enabled)
+    }
+
+    @Test
     fun disabledDomainListsAreKeptButNotUsed() {
         val s = valid.copy(cfUserDomains = "a.example.com", cfWorkerDomains = "w.workers.dev").toProxySettings()
         assertEquals(emptyList<String>(), s.cfproxyUserDomains)

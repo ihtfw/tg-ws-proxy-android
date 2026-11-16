@@ -59,6 +59,8 @@
     <string name="tip_cfproxy_user_domain_cb">Specify your own domains instead of automatic selection</string>
     <string name="label_cf_domains">Your CF proxy domains (comma-separated)</string>
     <string name="tip_cfproxy_domain">Your own domains proxied through Cloudflare for HTTP/2 and WS connections. Separate multiple domains with commas. If empty — chosen automatically from supported domains</string>
+    <string name="label_h2_enable">Media multiplexing (HTTP/2)</string>
+    <string name="tip_h2">Share one HTTP/2 connection per data center and domain for media downloads through Cloudflare. Requires CF proxy and TLS enabled</string>
     <string name="label_cfworker_enable">Cloudflare Worker</string>
     <string name="tip_cfworker_enable">Route connections to Telegram DCs through your own Cloudflare Worker</string>
     <string name="label_cfworker_domains">Cloudflare Worker domains (comma-separated)</string>

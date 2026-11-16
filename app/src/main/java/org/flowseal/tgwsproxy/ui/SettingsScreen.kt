@@ -227,6 +227,13 @@ private fun CloudflareSection(draft: SettingsDraft, errors: Map<ConfigField, Con
                 singleLine = false,
             )
         }
+        SwitchRow(
+            title = stringResource(R.string.label_h2_enable),
+            subtitle = stringResource(R.string.tip_h2),
+            checked = draft.h2Media && draft.h2Available,
+            enabled = draft.h2Available,
+            onCheckedChange = { onChange(draft.copy(h2Media = it)) },
+        )
         HorizontalDivider()
         SwitchRow(
             title = stringResource(R.string.label_cfworker_enable),
