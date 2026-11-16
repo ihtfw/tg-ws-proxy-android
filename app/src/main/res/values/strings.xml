@@ -70,6 +70,8 @@
     <string name="section_advanced">Advanced</string>
     <string name="label_listen_all">Listen on all interfaces</string>
     <string name="tip_listen_all">Off: only apps on this phone can connect (127.0.0.1). On: other devices on your network can connect too (0.0.0.0)</string>
+    <string name="label_fake_tls">Fake TLS domain</string>
+    <string name="tip_fake_tls">Empty: a regular dd secret. With a domain such as example.com, only Fake TLS (ee-secret) clients are accepted and the proxy masks itself as that site; the link changes, so add the proxy to Telegram again</string>
     <string name="label_force_test_dc">Force test data centers</string>
     <string name="tip_force_test_dc">Send all traffic to Telegram test DCs. Only for clients that report test DCs as plain 1–3 (Telethon, TDLib); regular accounts stop working through this proxy</string>
     <string name="label_pool_size">WebSocket session pool (default 4)</string>

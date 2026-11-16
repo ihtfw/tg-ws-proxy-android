@@ -271,6 +271,14 @@ private fun AdvancedSection(draft: SettingsDraft, errors: Map<ConfigField, Confi
             checked = draft.listenAll,
             onCheckedChange = { onChange(draft.withListenAll(it)) },
         )
+        SettingsTextField(
+            value = draft.fakeTlsDomain,
+            onValueChange = { onChange(draft.copy(fakeTlsDomain = it.trim())) },
+            label = stringResource(R.string.label_fake_tls),
+            hint = stringResource(R.string.tip_fake_tls),
+            error = errors[ConfigField.FAKE_TLS_DOMAIN],
+            keyboardType = KeyboardType.Uri,
+        )
         SwitchRow(
             title = stringResource(R.string.label_force_test_dc),
             subtitle = stringResource(R.string.tip_force_test_dc),

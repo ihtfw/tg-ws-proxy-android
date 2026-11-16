@@ -4,7 +4,9 @@ import org.flowseal.tgwsproxy.proxy.Bytes
 import org.flowseal.tgwsproxy.proxy.ProxySettings
 
 /** A settings field the user can get wrong. */
-enum class ConfigField { HOST, PORT, SECRET, DC_IPS, CF_USER_DOMAINS, CF_WORKER_DOMAINS, POOL_SIZE, BUFFER }
+enum class ConfigField {
+    HOST, PORT, SECRET, DC_IPS, CF_USER_DOMAINS, CF_WORKER_DOMAINS, FAKE_TLS_DOMAIN, POOL_SIZE, BUFFER,
+}
 
 /** What is wrong with a field; [entry] is the offending DC:IP line or domain when there is one. */
 data class ConfigError(val field: ConfigField, val kind: Kind, val entry: String = "") {
@@ -42,6 +44,8 @@ data class SettingsDraft(
     val cfWorkerDomains: String = "",
     /** Plain port 80 instead of TLS for the CF proxy and CF worker. */
     val noSecure: Boolean = false,
+    /** Non-empty: accept only Fake TLS (ee) clients, masking as this domain. */
+    val fakeTlsDomain: String = "",
 ) : java.io.Serializable {
 
     /** Listening on 0.0.0.0, reachable from other devices, instead of loopback only. */
@@ -67,6 +71,9 @@ data class SettingsDraft(
         dcError(dcIpLines())?.let { out += it }
         if (cfproxy && cfUserDomainEnabled) domainError(ConfigField.CF_USER_DOMAINS, cfUserDomainList())?.let { out += it }
         if (cfWorkerEnabled) domainError(ConfigField.CF_WORKER_DOMAINS, cfWorkerDomainList())?.let { out += it }
+        fakeTlsDomain.trim().takeIf { it.isNotEmpty() }?.let { domain ->
+            domainError(ConfigField.FAKE_TLS_DOMAIN, listOf(domain))?.let { out += it }
+        }
         if (parseInt(poolSize, 0, MAX_POOL_SIZE) == null) {
             out += ConfigError(ConfigField.POOL_SIZE, ConfigError.Kind.BAD_POOL_SIZE)
         }
@@ -96,6 +103,7 @@ data class SettingsDraft(
             cfproxyWorkerDomains = if (cfWorkerEnabled) cfWorkerDomainList() else emptyList(),
             cfproxyH2Media = h2Media,
             disableSecure = noSecure,
+            fakeTlsDomain = fakeTlsDomain.trim().lowercase(),
             forceTestDc = forceTestDc,
         )
     }
