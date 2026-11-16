@@ -11,6 +11,7 @@ fun ConfigError.message(context: Context): String = when (kind) {
     ConfigError.Kind.SECRET_HEX -> context.getString(R.string.validation_bad_secret_hex)
     ConfigError.Kind.DC_FORMAT -> context.getString(R.string.validation_dc_format, entry)
     ConfigError.Kind.DC_INVALID -> context.getString(R.string.validation_dc_invalid, entry)
+    ConfigError.Kind.BAD_DOMAIN -> context.getString(R.string.validation_bad_domain, entry)
     ConfigError.Kind.BAD_POOL_SIZE ->
         context.getString(R.string.validation_bad_pool, 0, SettingsDraft.MAX_POOL_SIZE)
     ConfigError.Kind.BAD_BUFFER ->

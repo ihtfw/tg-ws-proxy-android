@@ -25,7 +25,10 @@ class ClientConn(
  * Moving bytes between the client and Telegram, re-encrypted, and the fallbacks for a DC whose
  * pooled WebSocket is not available (upstream proxy/bridge.py).
  */
-class Bridge(private val ctx: ProxyContext) {
+class Bridge(
+    private val ctx: ProxyContext,
+    private val cfWorkerPool: CfWorkerPool? = null,
+) {
 
     companion object {
         const val TCP_BACKOFF_INITIAL_MS = 30_000L
@@ -52,14 +55,84 @@ class Bridge(private val ctx: ProxyContext) {
     ): Boolean {
         val ipTable = if (isTestDc) MtConst.DC_TEST_IPS else MtConst.DC_DEFAULT_IPS
         val fallbackDst = ipTable[dc]
+        val useCf = ctx.settings.fallbackCfproxy && !isTestDc
+        val workerDomains = ctx.settings.cfproxyWorkerDomains
+
         val methods = ArrayList<String>()
+        if (workerDomains.isNotEmpty() && fallbackDst != null) methods.add("cf_worker")
+        if (useCf) methods.add("cf")
         if (fallbackDst != null) methods.add("tcp")
+
         for (method in methods) {
             when (method) {
+                "cf_worker" -> if (cfWorkerFallback(client, relayInit, dc, isTestDc, isMedia, fallbackDst!!)) return true
+                "cf" -> if (cfproxyFallback(client, relayInit, dc, isMedia, splitter)) return true
                 "tcp" -> if (tcpFallback(client, fallbackDst!!, 443, relayInit)) return true
             }
         }
         return false
+    }
+
+    /** The user's Cloudflare Worker, which opens the WebSocket to [fallbackDst] for us. */
+    private fun cfWorkerFallback(
+        client: ClientConn, relayInit: ByteArray, dc: Int, isTestDc: Boolean, isMedia: Boolean, fallbackDst: String,
+    ): Boolean {
+        val workerDomains = ctx.settings.cfproxyWorkerDomains
+        if (workerDomains.isEmpty()) return false
+        val mediaTag = if (isMedia) " media" else ""
+        val pool = cfWorkerPool
+        val pooled = if (isTestDc || pool == null) null else pool.get(dc, fallbackDst, workerDomains)
+        var ws: RawWebSocket? = null
+        if (pooled != null) {
+            ws = pooled.first
+            ProxyLog.i("[${client.label}] DC$dc$mediaTag -> CF worker pool hit via ${pooled.second} for $fallbackDst")
+        } else {
+            val path = CfWorkerPool.workerPath(fallbackDst, dc)
+            for (domain in pool?.availableDomains(workerDomains) ?: workerDomains.distinct().shuffled()) {
+                ProxyLog.i("[${client.label}] DC$dc$mediaTag -> trying CF worker $domain for $fallbackDst")
+                try {
+                    ws = RawWebSocket.connect(domain, domain, timeoutMs = 10_000, path = path, secure = !ctx.settings.disableSecure)
+                    break
+                } catch (e: Exception) {
+                    ProxyLog.w("[${client.label}] DC$dc$mediaTag CF worker $domain failed: ${errStr(e)}")
+                }
+            }
+        }
+        val socket = ws ?: return false
+        stats.connectionsCfproxy.incrementAndGet()
+        socket.send(relayInit)
+        bridgeWsReencrypt(client, socket, dc, isMedia, null)
+        return true
+    }
+
+    /** A WebSocket to kws<dc>.<domain>, a domain proxied by Cloudflare to Telegram. */
+    private fun cfproxyFallback(
+        client: ClientConn, relayInit: ByteArray, dc: Int, isMedia: Boolean, splitter: MsgSplitter?,
+    ): Boolean {
+        val mediaTag = if (isMedia) " media" else ""
+        ProxyLog.i("[${client.label}] DC$dc$mediaTag -> trying CF proxy")
+        val started = now()
+        var ws: RawWebSocket? = null
+        var chosen: String? = null
+        for (base in ctx.balancer.domainsForDc(dc)) {
+            val domain = "kws$dc.$base"
+            try {
+                ws = RawWebSocket.connect(domain, domain, timeoutMs = 10_000, secure = !ctx.settings.disableSecure)
+                chosen = base
+                break
+            } catch (e: Exception) {
+                ProxyLog.w("[${client.label}] DC$dc$mediaTag CF proxy failed: ${errStr(e)}")
+            }
+        }
+        val socket = ws ?: return false
+        ProxyLog.d { "[${client.label}] WS CONNECT DC$dc$mediaTag route=cf setup_ms=${now() - started}" }
+        if (chosen != null && ctx.balancer.updateDomainForDc(dc, chosen)) {
+            ProxyLog.i("[${client.label}] Switched active CF domain")
+        }
+        stats.connectionsCfproxy.incrementAndGet()
+        socket.send(relayInit)
+        bridgeWsReencrypt(client, socket, dc, isMedia, splitter)
+        return true
     }
 
     private fun tcpFallback(client: ClientConn, dst: String, port: Int, relayInit: ByteArray): Boolean {

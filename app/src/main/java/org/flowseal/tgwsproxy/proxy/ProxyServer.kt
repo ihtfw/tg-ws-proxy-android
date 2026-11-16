@@ -37,7 +37,9 @@ class ProxyServer(val settings: ProxySettings) {
 
     private val secret = settings.secret
     private val wsPool = WsPool(ctx)
-    private val bridge = Bridge(ctx)
+    private val cfWorkerPool = CfWorkerPool(ctx)
+    private val bridge = Bridge(ctx, cfWorkerPool)
+    private var domainRefresh: java.util.concurrent.ScheduledFuture<*>? = null
     private val clients = ConcurrentHashMap.newKeySet<Socket>()
 
     @Volatile private var serverSocket: ServerSocket? = null
@@ -60,10 +62,16 @@ class ProxyServer(val settings: ProxySettings) {
             STATS_INTERVAL_S, STATS_INTERVAL_S, TimeUnit.SECONDS
         )
         wsPool.warmup()
+        cfWorkerPool.warmup()
     }
 
     /** What has to run before clients arrive: the domain lists and pools of later features. */
     private fun startBackground() {
+        if (settings.cfproxyUserDomains.isNotEmpty()) {
+            ctx.balancer.updateDomainsList(settings.cfproxyUserDomains)
+        } else {
+            domainRefresh = CfProxyDomains.startRefresh(ctx)
+        }
     }
 
     private fun bind(): ServerSocket {
@@ -92,6 +100,8 @@ class ProxyServer(val settings: ProxySettings) {
     }
 
     private fun stopBackground() {
+        domainRefresh?.cancel(true)
+        cfWorkerPool.close()
     }
 
     private fun logBanner() {
@@ -102,6 +112,14 @@ class ProxyServer(val settings: ProxySettings) {
         ProxyLog.i("  Secret:        ${settings.secretHex}")
         ProxyLog.i("  Target DC IPs:")
         for (dc in settings.dcRedirects.keys.sorted()) ProxyLog.i("    DC$dc: ${settings.dcRedirects[dc]}")
+        if (settings.fallbackCfproxy) {
+            val user = settings.cfproxyUserDomains.joinToString(", ").ifEmpty { "auto" }
+            ProxyLog.i("  CF proxy:      enabled ($user)")
+        }
+        if (settings.cfproxyWorkerDomains.isNotEmpty()) {
+            ProxyLog.i("  CF worker:     enabled (${settings.cfproxyWorkerDomains.joinToString(", ")})")
+        }
+        if (settings.disableSecure) ProxyLog.i("  No secure:     enabled (port 80 for CF proxy/worker)")
         if (settings.forceTestDc) ProxyLog.i("  Test DCs:      forced")
         ProxyLog.i(line)
         ProxyLog.i("  Connect:")

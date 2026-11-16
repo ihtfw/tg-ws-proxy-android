@@ -93,6 +93,51 @@ class SettingsDraftTest {
     }
 
     @Test
+    fun cloudflareDefaultsAndDomains() {
+        val s = valid.toProxySettings()
+        assertTrue(s.fallbackCfproxy)
+        assertEquals(emptyList<String>(), s.cfproxyUserDomains)
+        assertEquals(emptyList<String>(), s.cfproxyWorkerDomains)
+        assertFalse(s.disableSecure)
+
+        val custom = valid.copy(
+            cfUserDomainEnabled = true,
+            cfUserDomains = "a.example.com, b.example.org;A.example.com",
+            cfWorkerEnabled = true,
+            cfWorkerDomains = "name.account.workers.dev",
+            noSecure = true,
+        ).toProxySettings()
+        assertEquals(listOf("a.example.com", "b.example.org"), custom.cfproxyUserDomains)
+        assertEquals(listOf("name.account.workers.dev"), custom.cfproxyWorkerDomains)
+        assertTrue(custom.disableSecure)
+    }
+
+    @Test
+    fun disabledDomainListsAreKeptButNotUsed() {
+        val s = valid.copy(cfUserDomains = "a.example.com", cfWorkerDomains = "w.workers.dev").toProxySettings()
+        assertEquals(emptyList<String>(), s.cfproxyUserDomains)
+        assertEquals(emptyList<String>(), s.cfproxyWorkerDomains)
+        val off = valid.copy(cfproxy = false, cfUserDomainEnabled = true, cfUserDomains = "https://bad/").toProxySettings()
+        assertFalse(off.fallbackCfproxy)
+        assertEquals(emptyList<String>(), off.cfproxyUserDomains)
+    }
+
+    @Test
+    fun badDomainIsNamed() {
+        expectError(
+            valid.copy(cfUserDomainEnabled = true, cfUserDomains = "good.com, https://bad.com/x"),
+            ConfigField.CF_USER_DOMAINS, ConfigError.Kind.BAD_DOMAIN, "https://bad.com/x",
+        )
+        expectError(
+            valid.copy(cfWorkerEnabled = true, cfWorkerDomains = "1.2.3.4"),
+            ConfigField.CF_WORKER_DOMAINS, ConfigError.Kind.BAD_DOMAIN, "1.2.3.4",
+        )
+        assertTrue(SettingsDraft.isHostname("xn--d1acufc.xn--p1ai"))
+        assertFalse(SettingsDraft.isHostname("example"))
+        assertFalse(SettingsDraft.isHostname("example.com:443"))
+    }
+
+    @Test
     fun newSecretIsValid() {
         val a = SettingsDraft.newSecret()
         assertEquals(32, a.length)

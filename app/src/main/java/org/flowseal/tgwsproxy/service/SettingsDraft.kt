@@ -4,12 +4,12 @@ import org.flowseal.tgwsproxy.proxy.Bytes
 import org.flowseal.tgwsproxy.proxy.ProxySettings
 
 /** A settings field the user can get wrong. */
-enum class ConfigField { HOST, PORT, SECRET, DC_IPS, POOL_SIZE, BUFFER }
+enum class ConfigField { HOST, PORT, SECRET, DC_IPS, CF_USER_DOMAINS, CF_WORKER_DOMAINS, POOL_SIZE, BUFFER }
 
-/** What is wrong with a field; [entry] is the offending DC:IP line when there is one. */
+/** What is wrong with a field; [entry] is the offending DC:IP line or domain when there is one. */
 data class ConfigError(val field: ConfigField, val kind: Kind, val entry: String = "") {
     enum class Kind {
-        BAD_HOST, BAD_PORT, SECRET_LENGTH, SECRET_HEX, DC_FORMAT, DC_INVALID, BAD_POOL_SIZE, BAD_BUFFER,
+        BAD_HOST, BAD_PORT, SECRET_LENGTH, SECRET_HEX, DC_FORMAT, DC_INVALID, BAD_DOMAIN, BAD_POOL_SIZE, BAD_BUFFER,
     }
 }
 
@@ -29,6 +29,17 @@ data class SettingsDraft(
     val poolSize: String = DEFAULT_POOL_SIZE.toString(),
     val bufKb: String = DEFAULT_BUF_KB.toString(),
     val forceTestDc: Boolean = false,
+    /** Fall back to Cloudflare-proxied domains when a DC's WebSocket fails. */
+    val cfproxy: Boolean = true,
+    /** Use [cfUserDomains] instead of the public domain list. */
+    val cfUserDomainEnabled: Boolean = false,
+    /** The user's own Cloudflare-proxied domains, separated by commas. */
+    val cfUserDomains: String = "",
+    val cfWorkerEnabled: Boolean = false,
+    /** Cloudflare Worker domains, separated by commas. */
+    val cfWorkerDomains: String = "",
+    /** Plain port 80 instead of TLS for the CF proxy and CF worker. */
+    val noSecure: Boolean = false,
 ) : java.io.Serializable {
 
     /** Listening on 0.0.0.0, reachable from other devices, instead of loopback only. */
@@ -38,6 +49,10 @@ data class SettingsDraft(
 
     fun dcIpLines(): List<String> = dcIps.lines().map { it.trim() }.filter { it.isNotEmpty() }
 
+    fun cfUserDomainList(): List<String> = ProxySettings.coerceDomainList(cfUserDomains)
+
+    fun cfWorkerDomainList(): List<String> = ProxySettings.coerceDomainList(cfWorkerDomains)
+
     /** Every problem, at most one per field, in the order the fields appear on screen. */
     fun errors(): List<ConfigError> {
         val out = ArrayList<ConfigError>()
@@ -45,6 +60,8 @@ data class SettingsDraft(
         if (parsePort(port) == null) out += ConfigError(ConfigField.PORT, ConfigError.Kind.BAD_PORT)
         secretError(secret.trim())?.let { out += it }
         dcError(dcIpLines())?.let { out += it }
+        if (cfproxy && cfUserDomainEnabled) domainError(ConfigField.CF_USER_DOMAINS, cfUserDomainList())?.let { out += it }
+        if (cfWorkerEnabled) domainError(ConfigField.CF_WORKER_DOMAINS, cfWorkerDomainList())?.let { out += it }
         if (parseInt(poolSize, 0, MAX_POOL_SIZE) == null) {
             out += ConfigError(ConfigField.POOL_SIZE, ConfigError.Kind.BAD_POOL_SIZE)
         }
@@ -69,6 +86,10 @@ data class SettingsDraft(
             dcRedirects = ProxySettings.parseDcIpList(dcIpLines()),
             bufferSize = parseInt(bufKb, MIN_BUF_KB, MAX_BUF_KB)!! * 1024,
             poolSize = parseInt(poolSize, 0, MAX_POOL_SIZE)!!,
+            fallbackCfproxy = cfproxy,
+            cfproxyUserDomains = if (cfproxy && cfUserDomainEnabled) cfUserDomainList() else emptyList(),
+            cfproxyWorkerDomains = if (cfWorkerEnabled) cfWorkerDomainList() else emptyList(),
+            disableSecure = noSecure,
             forceTestDc = forceTestDc,
         )
     }
@@ -98,6 +119,15 @@ data class SettingsDraft(
             !ProxySettings.isValidSecret(secret) -> ConfigError(ConfigField.SECRET, ConfigError.Kind.SECRET_HEX)
             else -> null
         }
+
+        private val hostnamePattern =
+            Regex("^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+[A-Za-z0-9-]{2,63}$")
+
+        /** A host name such as "example.com" or "name.account.workers.dev": no scheme, port or path. */
+        fun isHostname(s: String): Boolean = hostnamePattern.matches(s) && !ProxySettings.isIpv4(s)
+
+        private fun domainError(field: ConfigField, domains: List<String>): ConfigError? =
+            domains.firstOrNull { !isHostname(it) }?.let { ConfigError(field, ConfigError.Kind.BAD_DOMAIN, it) }
 
         /** The first bad DC:IP line, told apart as "no DC:IP shape at all" or "bad DC number or IP". */
         private fun dcError(lines: List<String>): ConfigError? {
