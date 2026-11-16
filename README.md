@@ -85,6 +85,18 @@ gradle testDebugUnitTest      # unit tests; TGWS_LIVE=1 adds tests against real 
 
 The APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
 
+Release builds are signed when a `keystore.properties` file is present in the repository root
+(it is git-ignored, so the file stays local):
+
+```properties
+storeFile=/path/to/keystore.p12
+storePassword=…
+keyAlias=key0
+keyPassword=…
+```
+
+Without it `gradle assembleRelease` still works and produces an unsigned APK, which is what CI does.
+
 ## Credits
 
 This is a native Android (Kotlin + Jetpack Compose) port of the original Python project [tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) by [Flowseal](https://github.com/Flowseal) and its contributors.
