@@ -1,5 +1,7 @@
 # TG WS Proxy — Android
 
+[![Build](https://github.com/ihtfw/tg-ws-proxy-android/actions/workflows/build.yml/badge.svg)](https://github.com/ihtfw/tg-ws-proxy-android/actions/workflows/build.yml)
+
 Native Android port of [tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy): a local **MTProto proxy** that speeds up Telegram by routing its traffic through WebSocket connections. Data stays end-to-end encrypted (MTProto); no third-party servers are needed.
 
 <p align="center">
