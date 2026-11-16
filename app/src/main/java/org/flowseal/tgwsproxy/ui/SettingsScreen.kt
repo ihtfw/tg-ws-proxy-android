@@ -127,6 +127,7 @@ fun SettingsScreen(
             CloudflareSection(draft, errors) { draft = it }
             AdvancedSection(draft, errors) { draft = it }
             AppSection(config, themeMode, onThemeModeChange)
+            UpdatesSection(config)
             val version = remember { appVersion(context) }
             if (version.isNotEmpty()) {
                 Text(

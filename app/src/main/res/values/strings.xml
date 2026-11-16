@@ -41,6 +41,46 @@
     <string name="stats_errors_value">%1$d WS · %2$d bad clients</string>
     <string name="recent_log_title">Recent log</string>
 
+    <!-- Connectivity check (upstream connectivity.*) -->
+    <string name="action_check_connectivity">Check connectivity</string>
+    <string name="connectivity_title">Connectivity check</string>
+    <string name="connectivity_intro">Tests from this phone whether the WebSocket of each Telegram data center opens through your DC → IP rules, the Cloudflare proxy domains and your Cloudflare Workers. Uses the saved settings; the proxy does not have to be running.</string>
+    <string name="action_run_check">Run check</string>
+    <string name="connectivity_checking">Checking…</string>
+    <string name="connectivity_nothing">Nothing to check: no DC → IP rules (or the WebSocket pool is 0), the CF proxy is off and there are no Cloudflare Worker domains.</string>
+    <string name="connectivity_direct_title">WebSocket via DC → IP</string>
+    <string name="connectivity_cfproxy_title">CF Proxy</string>
+    <string name="connectivity_cfproxy_domain_title">CF Proxy: %1$s</string>
+    <string name="connectivity_cfproxy_auto_title">CF Proxy (automatic domains)</string>
+    <string name="connectivity_cfproxy_auto_domain_title">CF Proxy (automatic): %1$s</string>
+    <string name="connectivity_cfworker_title">CF Worker</string>
+    <string name="connectivity_cfworker_domain_title">CF Worker: %1$s</string>
+    <string name="connectivity_all_ok">✓ All working: all %1$d servers reachable</string>
+    <string name="connectivity_partial">~ Partially working: %1$d of %2$d servers reachable</string>
+    <string name="connectivity_unavailable">✗ Unavailable: no servers respond</string>
+    <string name="connectivity_auto_ok">✓ %1$s works. %2$d of %3$d servers reachable.</string>
+    <string name="connectivity_cf_auto_fail">✗ None of the automatic CF domains respond.</string>
+    <string name="connectivity_ok">OK</string>
+    <string name="connectivity_timeout">timeout</string>
+    <string name="connectivity_no_response">no response</string>
+    <string name="connectivity_host_not_found">host not found (DNS)</string>
+    <string name="connectivity_media">media</string>
+    <string name="connectivity_ok_fronting">OK (fronting)</string>
+    <string name="connectivity_auto_partial">~ %1$s is only partly reachable: %2$d of %3$d servers</string>
+    <string name="connectivity_cancelled">Check stopped.</string>
+    <string name="connectivity_failed">Check failed: %1$s</string>
+
+    <!-- Logs -->
+    <string name="logs_title">Logs</string>
+    <string name="action_open_logs">Open logs</string>
+    <string name="logs_empty">No log lines yet.</string>
+    <string name="logs_hint">When shared, domain names other than Telegram\'s are masked.</string>
+    <string name="action_share">Share</string>
+    <string name="action_clear">Clear</string>
+    <string name="logs_share_subject">TG WS Proxy log</string>
+    <string name="logs_share_chooser">Share log</string>
+    <string name="logs_share_truncated">… older lines omitted</string>
+
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="section_mtproto">MTProto Connection</string>
@@ -104,6 +144,24 @@
     <string name="validation_bad_pool">Must be a number from %1$d to %2$d</string>
     <string name="validation_bad_buffer">Must be a number from %1$d to %2$d</string>
     <string name="validation_fix_fields">Fix the highlighted fields to save.</string>
+
+    <!-- Updates (upstream updates.*, update.*) -->
+    <string name="section_updates">Updates</string>
+    <string name="label_check_updates">Check for updates on startup</string>
+    <string name="tip_check_updates">Compares this version with the latest release on GitHub (api.github.com); nothing is installed automatically</string>
+    <string name="action_check_updates">Check for updates</string>
+    <string name="action_open_release">Open release page</string>
+    <string name="action_skip_version">Skip this version</string>
+    <string name="action_close">Close</string>
+    <string name="updates_status_pending">Updates have not been checked yet.</string>
+    <string name="updates_status_checking">Checking for updates…</string>
+    <string name="updates_status_available">Version %1$s is available on GitHub (you have %2$s).</string>
+    <string name="updates_status_ahead">You have %1$s — newer than the latest GitHub release (%2$s).</string>
+    <string name="updates_status_latest">Latest known version from GitHub is installed.</string>
+    <string name="updates_status_error">Could not reach GitHub. Check your network.</string>
+    <string name="update_title">TG WS Proxy — Update</string>
+    <string name="update_ask_open">New version available: %1$s\n\nOpen the release page in the browser?</string>
+    <string name="toast_no_browser">No app to open the link</string>
 
     <!-- Start failures (upstream diagnostics.*) -->
     <string name="diagnostics_port_busy">Failed to start proxy:\nPort %1$d is already in use by another application.\n\nClose the app using this port, or change the port in proxy settings and restart.</string>

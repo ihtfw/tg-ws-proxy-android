@@ -91,6 +91,19 @@ class ProxyConfig(context: Context) {
         get() = prefs.getString(KEY_THEME, null) ?: "system"
         set(value) = prefs.edit().putString(KEY_THEME, value).apply()
 
+    /**
+     * Ask GitHub for a newer release when the app opens. Off by default: the app is a proxy,
+     * and its first network call should not be to a third party unless the user asked for it.
+     */
+    var checkUpdates: Boolean
+        get() = prefs.getBoolean(KEY_CHECK_UPDATES, false)
+        set(value) = prefs.edit().putBoolean(KEY_CHECK_UPDATES, value).apply()
+
+    /** The release the user asked not to be reminded about again. */
+    var skippedUpdate: String
+        get() = prefs.getString(KEY_SKIPPED_UPDATE, null).orEmpty()
+        set(value) = prefs.edit().putString(KEY_SKIPPED_UPDATE, value).apply()
+
     /** Debug lines in the log. */
     var verbose: Boolean
         get() = prefs.getBoolean(KEY_VERBOSE, false)
@@ -188,5 +201,7 @@ class ProxyConfig(context: Context) {
         private const val KEY_AUTOSTART = "autostart"
         private const val KEY_THEME = "theme_mode"
         private const val KEY_VERBOSE = "verbose"
+        private const val KEY_CHECK_UPDATES = "check_updates"
+        private const val KEY_SKIPPED_UPDATE = "skipped_update"
     }
 }

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common actions -->
+    <string name="action_start">Запустить</string>
+    <string name="action_stop">Остановить</string>
+    <string name="action_restart">Перезапустить</string>
+    <string name="action_back">Назад</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_save_restart">Сохранить и перезапустить</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_discard">Не сохранять</string>
+
+    <!-- Main screen -->
+    <string name="status_running">Работает</string>
+    <string name="status_starting">Запуск…</string>
+    <string name="status_stopped">Остановлен</string>
+    <string name="status_failed">Не запущен</string>
+    <string name="status_mtproto">MTProto-прокси</string>
+    <string name="link_title">Ссылка на прокси</string>
+    <string name="link_hint">«Открыть в Telegram» добавит этот прокси в Telegram на этом телефоне. Или скопируйте ссылку, отправьте её себе в Telegram и нажмите по ней.</string>
+    <string name="link_lan_title">Для других устройств в вашей сети</string>
+    <string name="action_open_telegram">Открыть в Telegram</string>
+    <string name="action_copy_link">Скопировать ссылку</string>
+    <string name="toast_link_copied">Ссылка скопирована в буфер обмена</string>
+    <string name="toast_open_telegram_failed">Не удалось открыть Telegram автоматически. Ссылка скопирована в буфер обмена: отправьте её в Telegram и нажмите по ней.</string>
+    <string name="stats_title">Статистика</string>
+    <string name="stats_connections">Подключения</string>
+    <string name="stats_connections_value">активных: %1$d · всего: %2$d</string>
+    <string name="stats_websocket">Через WebSocket</string>
+    <string name="stats_cfproxy">Через CF-прокси</string>
+    <string name="stats_h2">Медиа через HTTP/2</string>
+    <string name="stats_tcp_fallback">Резервный TCP</string>
+    <string name="stats_traffic">Трафик</string>
+    <string name="stats_traffic_value">↑ %1$s  ↓ %2$s</string>
+    <string name="stats_pool">Попадания в пул WebSocket</string>
+    <string name="stats_pool_value">%1$d из %2$d</string>
+    <string name="stats_none">—</string>
+    <string name="stats_errors">Ошибки</string>
+    <string name="stats_errors_value">WS: %1$d · плохих клиентов: %2$d</string>
+    <string name="recent_log_title">Последние записи лога</string>
+
+    <!-- Connectivity check (upstream connectivity.*) -->
+    <string name="action_check_connectivity">Проверить соединение</string>
+    <string name="connectivity_title">Проверка соединения</string>
+    <string name="connectivity_intro">Проверяет с этого телефона, открывается ли WebSocket каждого датацентра Telegram через ваши правила DC → IP, домены CF-прокси и ваши Cloudflare Worker. Используются сохранённые настройки; запускать прокси не нужно.</string>
+    <string name="action_run_check">Запустить проверку</string>
+    <string name="connectivity_checking">Проверка…</string>
+    <string name="connectivity_nothing">Нечего проверять: нет правил DC → IP (или пул WebSocket равен 0), CF-прокси выключен и нет доменов Cloudflare Worker.</string>
+    <string name="connectivity_direct_title">WebSocket через DC → IP</string>
+    <string name="connectivity_cfproxy_title">CF-прокси</string>
+    <string name="connectivity_cfproxy_domain_title">CF-прокси: %1$s</string>
+    <string name="connectivity_cfproxy_auto_title">CF-прокси (автоматические домены)</string>
+    <string name="connectivity_cfproxy_auto_domain_title">CF-прокси (авто): %1$s</string>
+    <string name="connectivity_cfworker_title">CF Worker</string>
+    <string name="connectivity_cfworker_domain_title">CF Worker: %1$s</string>
+    <string name="connectivity_all_ok">✓ Всё работает: доступны все серверы (%1$d)</string>
+    <string name="connectivity_partial">~ Частично работает: доступны %1$d из %2$d серверов</string>
+    <string name="connectivity_unavailable">✗ Недоступен: ни один сервер не отвечает</string>
+    <string name="connectivity_auto_ok">✓ %1$s работает. %2$d из %3$d серверов доступны.</string>
+    <string name="connectivity_cf_auto_fail">✗ Ни один из автоматических CF-доменов не отвечает.</string>
+    <string name="connectivity_ok">OK</string>
+    <string name="connectivity_timeout">таймаут</string>
+    <string name="connectivity_no_response">нет ответа</string>
+    <string name="connectivity_host_not_found">хост не найден (DNS)</string>
+    <string name="connectivity_media">медиа</string>
+    <string name="connectivity_ok_fronting">OK (fronting)</string>
+    <string name="connectivity_auto_partial">~ %1$s работает частично: доступны %2$d из %3$d серверов</string>
+    <string name="connectivity_cancelled">Проверка остановлена.</string>
+    <string name="connectivity_failed">Проверка не удалась: %1$s</string>
+
+    <!-- Logs -->
+    <string name="logs_title">Логи</string>
+    <string name="action_open_logs">Открыть логи</string>
+    <string name="logs_empty">В логе пока нет записей.</string>
+    <string name="logs_hint">При отправке все домены, кроме доменов Telegram, маскируются.</string>
+    <string name="action_share">Поделиться</string>
+    <string name="action_clear">Очистить</string>
+    <string name="logs_share_subject">Лог TG WS Proxy</string>
+    <string name="logs_share_chooser">Отправить лог</string>
+    <string name="logs_share_truncated">… ранние строки опущены</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="section_mtproto">Подключение MTProto</string>
+    <string name="label_port">Порт</string>
+    <string name="tip_port">Порт прокси. В Telegram в настройках прокси должен быть указан тот же порт</string>
+    <string name="label_secret">Ключ</string>
+    <string name="tip_secret">Секретный ключ для авторизации клиентов. После изменения добавьте прокси в Telegram заново</string>
+    <string name="action_regenerate_secret">Сгенерировать новый</string>
+    <string name="section_dc">Датацентры Telegram (DC → IP)</string>
+    <string name="label_dc_hint">По одному правилу на строку, формат: номер:IP</string>
+    <string name="tip_dc">Соответствие номера датацентра Telegram (DC) и IP-адреса сервера, например 4:149.154.167.220. Если у вас не работают медиа и работает CF-прокси, то попробуйте убрать строку 2:149.154.167.220</string>
+    <string name="section_cloudflare">Cloudflare</string>
+    <string name="label_cf_enable">Включить CF-прокси</string>
+    <string name="tip_cfproxy">Использовать Cloudflare прокси для недоступных датацентров</string>
+    <string name="label_cf_custom_domain">Свой домен</string>
+    <string name="tip_cfproxy_user_domain_cb">Указать свои домены вместо автоматического выбора</string>
+    <string name="label_cf_domains">Ваши домены CF-прокси (через запятую)</string>
+    <string name="tip_cfproxy_domain">Ваши собственные домены, проксируемые через Cloudflare, для HTTP/2 и WS-подключений. Несколько доменов указывайте через запятую. Если не указаны — выбираются автоматически из поддерживаемых доменов</string>
+    <string name="label_h2_enable">Мультиплексирование медиа (HTTP/2)</string>
+    <string name="tip_h2">Объединять загрузку медиа через Cloudflare в общее HTTP/2-соединение для каждого датацентра и домена. Требуется включённый CF-прокси и включённый TLS</string>
+    <string name="label_cfworker_enable">Cloudflare Worker</string>
+    <string name="tip_cfworker_enable">Направлять подключения к датацентрам Telegram через ваш Cloudflare Worker</string>
+    <string name="label_cfworker_domains">Cloudflare Worker домены (через запятую)</string>
+    <string name="tip_cfworker_domain">Домены Cloudflare Worker (например, name.account.workers.dev). Несколько доменов указывайте через запятую. Прокси передает через них подключение к Telegram DC по IP</string>
+    <string name="label_no_secure">Выключить TLS для CF-прокси и CF-worker</string>
+    <string name="tip_no_secure">Если включено, прокси будет использовать 80 порт для CF-прокси и CF-worker подключений</string>
+    <string name="section_advanced">Дополнительно</string>
+    <string name="label_listen_all">Принимать подключения на всех интерфейсах</string>
+    <string name="tip_listen_all">Выключено: подключаться могут только приложения на этом телефоне (127.0.0.1). Включено: также другие устройства в вашей сети (0.0.0.0)</string>
+    <string name="label_fake_tls">Домен Fake TLS</string>
+    <string name="tip_fake_tls">Пусто: обычный dd-ключ. С доменом, например example.com, принимаются только клиенты с Fake TLS (ee-ключ), а прокси маскируется под этот сайт; ссылка меняется, поэтому добавьте прокси в Telegram заново</string>
+    <string name="label_force_test_dc">Принудительно тестовые датацентры</string>
+    <string name="tip_force_test_dc">Весь трафик направляется на тестовые DC Telegram. Только для клиентов, которые сообщают тестовые DC как обычные 1–3 (Telethon, TDLib); продовые аккаунты через этот прокси работать перестанут</string>
+    <string name="label_pool_size">Пул WebSocket-сессий (по умолчанию 4)</string>
+    <string name="tip_pool">Сколько готовых WebSocket-соединений держать для каждого датацентра. 0 отключает прямой DC→IP WebSocket-маршрут</string>
+    <string name="label_buf_kb">Буфер, КБ (по умолчанию 256)</string>
+    <string name="tip_buf_kb">Размер буфера приёма/передачи в килобайтах. Больше значение — больше выделение памяти на сокет</string>
+    <string name="section_app">Приложение</string>
+    <string name="settings_theme">Тема</string>
+    <string name="appearance_auto">Авто</string>
+    <string name="appearance_light">Светлая</string>
+    <string name="appearance_dark">Тёмная</string>
+    <string name="label_autostart">Автозапуск при включении телефона</string>
+    <string name="tip_autostart">Запускать прокси в фоне при включении телефона</string>
+    <string name="label_verbose">Подробное логирование (verbose)</string>
+    <string name="tip_verbose">Если включено, в лог пишется больше подробностей — необходимо при поиске неполадок</string>
+    <string name="version">Версия %1$s</string>
+    <string name="toast_saved">Настройки сохранены</string>
+    <string name="toast_saved_restarting">Настройки сохранены, прокси перезапускается</string>
+    <string name="dialog_discard_title">Отменить изменения?</string>
+    <string name="dialog_discard_body">Изменённые настройки не сохранены.</string>
+
+    <!-- Validation (upstream validation.*) -->
+    <string name="validation_bad_host">Некорректный IP-адрес.</string>
+    <string name="validation_bad_port">Порт должен быть числом 1-65535</string>
+    <string name="validation_bad_secret_len">Ключ должен содержать ровно 32 hex-символа (16 байт).</string>
+    <string name="validation_bad_secret_hex">Ключ должен состоять только из hex-символов (0-9, a-f).</string>
+    <string name="validation_dc_format">Неверный формат DC:IP: %1$s</string>
+    <string name="validation_dc_invalid">Неверная запись DC:IP: %1$s</string>
+    <string name="validation_bad_domain">Некорректный домен: %1$s. Укажите имя вида example.com, без http:// и пути</string>
+    <string name="validation_bad_pool">Должно быть числом от %1$d до %2$d</string>
+    <string name="validation_bad_buffer">Должно быть числом от %1$d до %2$d</string>
+    <string name="validation_fix_fields">Исправьте выделенные поля, чтобы сохранить.</string>
+
+    <!-- Updates (upstream updates.*, update.*) -->
+    <string name="section_updates">Обновления</string>
+    <string name="label_check_updates">Проверять обновления при запуске</string>
+    <string name="tip_check_updates">Сравнивает эту версию с последним релизом на GitHub (api.github.com); ничего не устанавливается автоматически</string>
+    <string name="action_check_updates">Проверить обновления</string>
+    <string name="action_open_release">Открыть страницу релиза</string>
+    <string name="action_skip_version">Пропустить эту версию</string>
+    <string name="action_close">Закрыть</string>
+    <string name="updates_status_pending">Обновления ещё не проверялись.</string>
+    <string name="updates_status_checking">Проверка обновлений…</string>
+    <string name="updates_status_available">На GitHub доступна версия %1$s (у вас %2$s).</string>
+    <string name="updates_status_ahead">У вас %1$s — новее последнего релиза на GitHub (%2$s).</string>
+    <string name="updates_status_latest">Установлена последняя известная версия с GitHub.</string>
+    <string name="updates_status_error">Не удалось связаться с GitHub. Проверьте сеть.</string>
+    <string name="update_title">TG WS Proxy — обновление</string>
+    <string name="update_ask_open">Доступна новая версия: %1$s\n\nОткрыть страницу релиза в браузере?</string>
+    <string name="toast_no_browser">Нет приложения, чтобы открыть ссылку</string>
+
+    <!-- Start failures (upstream diagnostics.*) -->
+    <string name="diagnostics_port_busy">Не удалось запустить прокси:\nПорт %1$d уже используется другим приложением.\n\nЗакройте приложение, использующее этот порт, или измените порт в настройках прокси и перезапустите.</string>
+    <string name="diagnostics_permission">Не удалось запустить прокси:\nДоступ к адресу/порту запрещён.\n\nПриложения Android не могут использовать порты ниже 1024: измените порт на случайный в диапазоне 10000–50000 в настройках и перезапустите.</string>
+    <string name="diagnostics_bad_address">Не удалось запустить прокси:\nНекорректный или недоступный адрес для прослушивания.\n\nПроверьте «Принимать подключения на всех интерфейсах» и порт в настройках и перезапустите.</string>
+    <string name="diagnostics_other">Не удалось запустить прокси:\n%1$s</string>
+    <string name="error_config">Не удалось запустить прокси: ошибка в настройках.\n%1$s\n\nИсправьте её в настройках и запустите снова.</string>
+
+    <!-- Notification -->
+    <string name="notification_channel">Состояние прокси</string>
+    <string name="notification_channel_description">Поддерживает работу прокси в фоне</string>
+    <string name="notification_starting">Запуск…</string>
+    <string name="notification_listening">MTProto-прокси на %1$s</string>
+    <string name="notification_failed_title">Прокси не запущен</string>
+</resources>

@@ -18,6 +18,9 @@ object LogBuffer {
     private val lines = ArrayDeque<String>()
     private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
+    /** The last [snapshot] result; a Compose recomposition reuses it instead of copying 2000 lines. */
+    private var cached: List<String>? = null
+
     private val _version = MutableStateFlow(0L)
 
     /** Changes whenever lines are added or cleared. */
@@ -49,15 +52,17 @@ object LogBuffer {
         synchronized(lines) {
             lines.addLast("${timeFormat.format(Date())} ${level.name.first()} $msg")
             while (lines.size > MAX_LINES) lines.removeFirst()
+            cached = null
             _version.value = _version.value + 1
         }
     }
 
-    fun snapshot(): List<String> = synchronized(lines) { lines.toList() }
+    fun snapshot(): List<String> = synchronized(lines) { cached ?: lines.toList().also { cached = it } }
 
     fun clear() {
         synchronized(lines) {
             lines.clear()
+            cached = null
             _version.value = _version.value + 1
         }
     }

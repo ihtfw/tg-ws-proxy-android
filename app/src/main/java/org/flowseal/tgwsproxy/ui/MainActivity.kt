@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val config = ProxyConfig(this)
+        Updates.checkOnStart(applicationContext)
         setContent {
             var themeMode by remember { mutableStateOf(config.themeMode) }
             val dark = isDarkTheme(themeMode)
@@ -63,21 +64,32 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Screen { MAIN, SETTINGS }
+enum class Screen { MAIN, SETTINGS, CONNECTIVITY, LOGS }
 
 @Composable
 fun AppNavigation(config: ProxyConfig, themeMode: String, onThemeModeChange: (String) -> Unit) {
     var screen by rememberSaveable { mutableStateOf(Screen.MAIN) }
     BackHandler(enabled = screen != Screen.MAIN) { screen = Screen.MAIN }
+    UpdateOfferDialog()
     when (screen) {
         Screen.MAIN -> MainScreen(
             config = config,
             onOpenSettings = { screen = Screen.SETTINGS },
+            onOpenConnectivity = { screen = Screen.CONNECTIVITY },
+            onOpenLogs = { screen = Screen.LOGS },
         )
         Screen.SETTINGS -> SettingsScreen(
             config = config,
             themeMode = themeMode,
             onThemeModeChange = onThemeModeChange,
+            onClose = { screen = Screen.MAIN },
+        )
+        Screen.CONNECTIVITY -> ConnectivityScreen(
+            config = config,
+            onClose = { screen = Screen.MAIN },
+        )
+        Screen.LOGS -> LogsScreen(
+            config = config,
             onClose = { screen = Screen.MAIN },
         )
     }
