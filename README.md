@@ -35,7 +35,7 @@ Non-Telegram traffic is passed through directly.
 
 ## Quick start
 
-1. Install the APK from the [Releases](https://github.com/Flowseal/tg-ws-proxy-android/releases) page
+1. Install the APK from the [Releases](https://github.com/ihtfw/tg-ws-proxy-android/releases) page
 2. Open the app and tap **Start**
 3. Tap **Open in Telegram** to automatically configure the proxy, or set it up manually:
    - Telegram → **Settings** → **Data and Storage** → **Proxy** → **Add Proxy**
@@ -67,7 +67,7 @@ Settings are applied after tapping **Save & Restart**.
 ## Building from source
 
 ```bash
-git clone https://github.com/Flowseal/tg-ws-proxy-android.git
+git clone https://github.com/ihtfw/tg-ws-proxy-android.git
 cd tg-ws-proxy-android
 ./gradlew assembleDebug
 ```
