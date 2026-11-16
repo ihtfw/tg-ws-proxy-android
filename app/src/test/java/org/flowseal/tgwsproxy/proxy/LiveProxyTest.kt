@@ -117,6 +117,18 @@ class LiveProxyTest {
     }
 
     @Test
+    fun mediaThroughCloudflareH2() {
+        // media goes to the CF proxy over HTTP/2 (POST /api), the rest over its WebSocket
+        val s = startProxy(ProxySettings(dcRedirects = emptyMap(), poolSize = 0))
+        roundTrip(s, -2)
+        roundTrip(s, -4, MtConst.PROTO_TAG_SECURE)
+        roundTrip(s, 2)
+        assertEquals(2L, server!!.stats.connectionsH2.get())
+        assertEquals(3L, server!!.stats.connectionsCfproxy.get())
+        assert(lines.none { "TCP fallback to" in it }) { "fell through to TCP" }
+    }
+
+    @Test
     fun domainListFromGitHub() {
         val list = CfProxyDomains.normalize(CfProxyDomains.parseList(CfProxyDomains.fetch(CfProxyDomains.DOMAINS_URL)))
         assert(list.size >= 3) { "only ${list.size} domains" }

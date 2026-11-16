@@ -8,6 +8,6 @@
 -dontwarn org.openjsse.**
 -keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
 
-# Exception class names appear in H2 log lines ("request failed: StreamResetException: ...").
+# Exception class names appear in log lines ("request failed: StreamResetException: ...").
 -keepnames class okhttp3.** extends java.lang.Throwable
--keepnames class org.flowseal.tgwsproxy.proxy.CfH2* extends java.lang.Throwable
+-keepnames class org.flowseal.tgwsproxy.proxy.** extends java.lang.Throwable

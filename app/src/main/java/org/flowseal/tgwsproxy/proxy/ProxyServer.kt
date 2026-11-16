@@ -30,6 +30,7 @@ class ProxyServer(val settings: ProxySettings) {
         private const val BAD_HANDSHAKE_DRAIN_LIMIT = 64 * 1024
         private const val LISTENER_RESTART_DELAY_MS = 1_000L
         private const val STATS_INTERVAL_S = 60L
+        private const val FLOW_INTERVAL_S = 5L
     }
 
     val ctx = ProxyContext(settings)
@@ -38,7 +39,8 @@ class ProxyServer(val settings: ProxySettings) {
     private val secret = settings.secret
     private val wsPool = WsPool(ctx)
     private val cfWorkerPool = CfWorkerPool(ctx)
-    private val bridge = Bridge(ctx, cfWorkerPool)
+    private val h2Pool: CfH2Pool? = if (settings.h2Enabled) CfH2Pool(ctx) else null
+    private val bridge = Bridge(ctx, cfWorkerPool, h2Pool)
     private var domainRefresh: java.util.concurrent.ScheduledFuture<*>? = null
     private val clients = ConcurrentHashMap.newKeySet<Socket>()
 
@@ -58,9 +60,15 @@ class ProxyServer(val settings: ProxySettings) {
 
         Thread({ acceptLoop() }, "tgws-accept").apply { isDaemon = true; start() }
         ctx.scheduler.scheduleWithFixedDelay(
-            { ProxyLog.i("stats: ${stats.summary()}") },
+            {
+                ProxyLog.i("stats: ${stats.summary()}")
+                runCatching { h2Pool?.logStats() }
+            },
             STATS_INTERVAL_S, STATS_INTERVAL_S, TimeUnit.SECONDS
         )
+        if (h2Pool != null) {
+            ctx.scheduler.scheduleWithFixedDelay({ runCatching { h2Pool?.logFlow() } }, FLOW_INTERVAL_S, FLOW_INTERVAL_S, TimeUnit.SECONDS)
+        }
         wsPool.warmup()
         cfWorkerPool.warmup()
     }
@@ -102,6 +110,7 @@ class ProxyServer(val settings: ProxySettings) {
     private fun stopBackground() {
         domainRefresh?.cancel(true)
         cfWorkerPool.close()
+        h2Pool?.close()
     }
 
     private fun logBanner() {
@@ -119,6 +128,7 @@ class ProxyServer(val settings: ProxySettings) {
         if (settings.cfproxyWorkerDomains.isNotEmpty()) {
             ProxyLog.i("  CF worker:     enabled (${settings.cfproxyWorkerDomains.joinToString(", ")})")
         }
+        if (h2Pool != null) ProxyLog.i("  CF H2 media:   enabled")
         if (settings.disableSecure) ProxyLog.i("  No secure:     enabled (port 80 for CF proxy/worker)")
         if (settings.forceTestDc) ProxyLog.i("  Test DCs:      forced")
         ProxyLog.i(line)

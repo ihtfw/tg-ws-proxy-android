@@ -28,6 +28,7 @@ class ClientConn(
 class Bridge(
     private val ctx: ProxyContext,
     private val cfWorkerPool: CfWorkerPool? = null,
+    private val h2Pool: CfH2Pool? = null,
 ) {
 
     companion object {
@@ -66,7 +67,18 @@ class Bridge(
         for (method in methods) {
             when (method) {
                 "cf_worker" -> if (cfWorkerFallback(client, relayInit, dc, isTestDc, isMedia, fallbackDst!!)) return true
-                "cf" -> if (cfproxyFallback(client, relayInit, dc, isMedia, splitter)) return true
+                "cf" -> {
+                    if (isMedia && h2Pool != null) {
+                        val channel = h2Pool.open(dc, client.label)
+                        if (channel != null) {
+                            stats.connectionsH2.incrementAndGet()
+                            stats.connectionsCfproxy.incrementAndGet()
+                            bridgeH2(ctx, client.input, client.output, channel, client.crypto, protoTag, client.label)
+                            return true
+                        }
+                    }
+                    if (cfproxyFallback(client, relayInit, dc, isMedia, splitter)) return true
+                }
                 "tcp" -> if (tcpFallback(client, fallbackDst!!, 443, relayInit)) return true
             }
         }
