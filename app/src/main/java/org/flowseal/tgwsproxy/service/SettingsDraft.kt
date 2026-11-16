@@ -35,6 +35,8 @@ data class SettingsDraft(
     val cfUserDomainEnabled: Boolean = false,
     /** The user's own Cloudflare-proxied domains, separated by commas. */
     val cfUserDomains: String = "",
+    /** Multiplex media downloads over HTTP/2 to the CF proxy. */
+    val h2Media: Boolean = true,
     val cfWorkerEnabled: Boolean = false,
     /** Cloudflare Worker domains, separated by commas. */
     val cfWorkerDomains: String = "",
@@ -48,6 +50,9 @@ data class SettingsDraft(
     fun withListenAll(on: Boolean): SettingsDraft = copy(host = if (on) ALL_INTERFACES else DEFAULT_HOST)
 
     fun dcIpLines(): List<String> = dcIps.lines().map { it.trim() }.filter { it.isNotEmpty() }
+
+    /** HTTP/2 media needs the CF proxy over TLS and production DCs (ProxySettings.h2Enabled). */
+    val h2Available: Boolean get() = cfproxy && !noSecure && !forceTestDc
 
     fun cfUserDomainList(): List<String> = ProxySettings.coerceDomainList(cfUserDomains)
 
@@ -89,6 +94,7 @@ data class SettingsDraft(
             fallbackCfproxy = cfproxy,
             cfproxyUserDomains = if (cfproxy && cfUserDomainEnabled) cfUserDomainList() else emptyList(),
             cfproxyWorkerDomains = if (cfWorkerEnabled) cfWorkerDomainList() else emptyList(),
+            cfproxyH2Media = h2Media,
             disableSecure = noSecure,
             forceTestDc = forceTestDc,
         )
