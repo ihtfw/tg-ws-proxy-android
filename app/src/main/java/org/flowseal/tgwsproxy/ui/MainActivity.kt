@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Screen { MAIN, SETTINGS }
+enum class Screen { MAIN, SETTINGS, CONNECTIVITY }
 
 @Composable
 fun AppNavigation(config: ProxyConfig, themeMode: String, onThemeModeChange: (String) -> Unit) {
@@ -73,11 +73,16 @@ fun AppNavigation(config: ProxyConfig, themeMode: String, onThemeModeChange: (St
         Screen.MAIN -> MainScreen(
             config = config,
             onOpenSettings = { screen = Screen.SETTINGS },
+            onOpenConnectivity = { screen = Screen.CONNECTIVITY },
         )
         Screen.SETTINGS -> SettingsScreen(
             config = config,
             themeMode = themeMode,
             onThemeModeChange = onThemeModeChange,
+            onClose = { screen = Screen.MAIN },
+        )
+        Screen.CONNECTIVITY -> ConnectivityScreen(
+            config = config,
             onClose = { screen = Screen.MAIN },
         )
     }

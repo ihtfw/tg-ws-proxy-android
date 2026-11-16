@@ -41,6 +41,29 @@
     <string name="stats_errors_value">%1$d WS · %2$d bad clients</string>
     <string name="recent_log_title">Recent log</string>
 
+    <!-- Connectivity check (upstream connectivity.*) -->
+    <string name="action_check_connectivity">Check connectivity</string>
+    <string name="connectivity_title">Connectivity check</string>
+    <string name="connectivity_intro">Tests from this phone whether the WebSocket of each Telegram data center opens through your DC → IP rules, the Cloudflare proxy domains and your Cloudflare Workers. Uses the saved settings; the proxy does not have to be running.</string>
+    <string name="action_run_check">Run check</string>
+    <string name="connectivity_checking">Checking…</string>
+    <string name="connectivity_nothing">Nothing to check: no DC → IP rules (or the WebSocket pool is 0), the CF proxy is off and there are no Cloudflare Worker domains.</string>
+    <string name="connectivity_direct_title">WebSocket via DC → IP</string>
+    <string name="connectivity_cfproxy_title">CF Proxy</string>
+    <string name="connectivity_cfproxy_domain_title">CF Proxy: %1$s</string>
+    <string name="connectivity_cfproxy_auto_title">CF Proxy (automatic domains)</string>
+    <string name="connectivity_cfworker_title">CF Worker</string>
+    <string name="connectivity_cfworker_domain_title">CF Worker: %1$s</string>
+    <string name="connectivity_all_ok">✓ All working: all %1$d servers reachable</string>
+    <string name="connectivity_partial">~ Partially working: %1$d of %2$d servers reachable</string>
+    <string name="connectivity_unavailable">✗ Unavailable: no servers respond</string>
+    <string name="connectivity_auto_ok">✓ %1$s works. %2$d of %3$d servers reachable.</string>
+    <string name="connectivity_cf_auto_fail">✗ None of the automatic CF domains respond.</string>
+    <string name="connectivity_ok">OK</string>
+    <string name="connectivity_timeout">timeout</string>
+    <string name="connectivity_no_response">no response</string>
+    <string name="connectivity_host_not_found">host not found (DNS)</string>
+
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="section_mtproto">MTProto Connection</string>

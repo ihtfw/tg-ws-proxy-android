@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -67,7 +68,7 @@ import org.flowseal.tgwsproxy.service.ProxyState
 import org.flowseal.tgwsproxy.service.SettingsDraft
 
 @Composable
-fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit) {
+fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit, onOpenConnectivity: () -> Unit) {
     val context = LocalContext.current
     val status by ProxyState.status.collectAsState()
 
@@ -103,6 +104,11 @@ fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit) {
             StatusCard(status, savedListen)
             ControlButtons(status, context)
             if (localLink != null) LinkCard(context, localLink, running?.lanLink)
+            OutlinedButton(onClick = onOpenConnectivity, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.NetworkCheck, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.action_check_connectivity))
+            }
             if (running != null) StatsCard()
             RecentLogCard()
         }
