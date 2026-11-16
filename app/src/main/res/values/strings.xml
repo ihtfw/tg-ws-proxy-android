@@ -1,3 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TG WS Proxy</string>
+    <string name="app_name" translatable="false">TG WS Proxy</string>
+
+    <!-- Common actions -->
+    <string name="action_start">Start</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_restart">Restart</string>
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_save_restart">Save &amp; Restart</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_discard">Discard</string>
+
+    <!-- Main screen -->
+    <string name="status_running">Running</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_failed">Not running</string>
+    <string name="status_mtproto">MTProto proxy</string>
+    <string name="link_title">Proxy link</string>
+    <string name="link_hint">«Open in Telegram» adds this proxy to Telegram on this phone. Or copy the link, send it to yourself in Telegram and tap it.</string>
+    <string name="link_lan_title">For other devices on your network</string>
+    <string name="action_open_telegram">Open in Telegram</string>
+    <string name="action_copy_link">Copy link</string>
+    <string name="toast_link_copied">Link copied to clipboard</string>
+    <string name="toast_open_telegram_failed">Could not open Telegram. The link is copied to the clipboard: send it in Telegram and tap it.</string>
+    <string name="stats_title">Statistics</string>
+    <string name="stats_connections">Connections</string>
+    <string name="stats_connections_value">%1$d active · %2$d total</string>
+    <string name="stats_websocket">Via WebSocket</string>
+    <string name="stats_cfproxy">Via CF proxy</string>
+    <string name="stats_h2">Media over HTTP/2</string>
+    <string name="stats_tcp_fallback">TCP fallback</string>
+    <string name="stats_traffic">Traffic</string>
+    <string name="stats_traffic_value">↑ %1$s  ↓ %2$s</string>
+    <string name="stats_pool">WebSocket pool hits</string>
+    <string name="stats_pool_value">%1$d of %2$d</string>
+    <string name="stats_none">—</string>
+    <string name="stats_errors">Errors</string>
+    <string name="stats_errors_value">%1$d WS · %2$d bad clients</string>
+    <string name="recent_log_title">Recent log</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="section_mtproto">MTProto Connection</string>
+    <string name="label_port">Port</string>
+    <string name="tip_port">Proxy port. Telegram proxy settings must use the same port</string>
+    <string name="label_secret">Secret</string>
+    <string name="tip_secret">Secret key for client authorization. After a change, add the proxy to Telegram again</string>
+    <string name="action_regenerate_secret">Regenerate</string>
+    <string name="section_dc">Telegram Data Centers (DC → IP)</string>
+    <string name="label_dc_hint">One rule per line, format: number:IP</string>
+    <string name="tip_dc">Mapping of Telegram data center (DC) number to web.telegram.org dc server IP, e.g. 4:149.154.167.220. If connection fails then fallbacks are used</string>
+    <string name="section_advanced">Advanced</string>
+    <string name="label_listen_all">Listen on all interfaces</string>
+    <string name="tip_listen_all">Off: only apps on this phone can connect (127.0.0.1). On: other devices on your network can connect too (0.0.0.0)</string>
+    <string name="label_force_test_dc">Force test data centers</string>
+    <string name="tip_force_test_dc">Send all traffic to Telegram test DCs. Only for clients that report test DCs as plain 1–3 (Telethon, TDLib); regular accounts stop working through this proxy</string>
+    <string name="label_pool_size">WebSocket session pool (default 4)</string>
+    <string name="tip_pool">How many ready WebSocket connections to keep per data center. 0 disables the direct DC→IP WebSocket route</string>
+    <string name="label_buf_kb">Buffer, KB (default 256)</string>
+    <string name="tip_buf_kb">Receive/send buffer size in kilobytes. A larger value allocates more memory per socket</string>
+    <string name="section_app">App</string>
+    <string name="settings_theme">Theme</string>
+    <string name="appearance_auto">Auto</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="label_autostart">Start on device boot</string>
+    <string name="tip_autostart">Start the proxy in the background when the phone is turned on</string>
+    <string name="label_verbose">Verbose logging</string>
+    <string name="tip_verbose">When enabled, more details are written to the log — useful for troubleshooting</string>
+    <string name="version">Version %1$s</string>
+    <string name="toast_saved">Settings saved</string>
+    <string name="toast_saved_restarting">Settings saved, restarting the proxy</string>
+    <string name="dialog_discard_title">Discard changes?</string>
+    <string name="dialog_discard_body">The changed settings have not been saved.</string>
+
+    <!-- Validation (upstream validation.*) -->
+    <string name="validation_bad_host">Invalid IP address.</string>
+    <string name="validation_bad_port">Port must be a number between 1 and 65535</string>
+    <string name="validation_bad_secret_len">Secret must be exactly 32 hex characters (16 bytes).</string>
+    <string name="validation_bad_secret_hex">Secret must contain only hex characters (0-9, a-f).</string>
+    <string name="validation_dc_format">Invalid DC:IP format: %1$s</string>
+    <string name="validation_dc_invalid">Invalid DC:IP entry: %1$s</string>
+    <string name="validation_bad_pool">Must be a number from %1$d to %2$d</string>
+    <string name="validation_bad_buffer">Must be a number from %1$d to %2$d</string>
+    <string name="validation_fix_fields">Fix the highlighted fields to save.</string>
+
+    <!-- Start failures (upstream diagnostics.*) -->
+    <string name="diagnostics_port_busy">Failed to start proxy:\nPort %1$d is already in use by another application.\n\nClose the app using this port, or change the port in proxy settings and restart.</string>
+    <string name="diagnostics_permission">Failed to start proxy:\nAccess to address/port denied.\n\nAndroid apps cannot use ports below 1024: change the port to a random value in 10000–50000 in settings and restart.</string>
+    <string name="diagnostics_bad_address">Failed to start proxy:\nInvalid or unavailable listen address.\n\nCheck «Listen on all interfaces» and the port in settings and restart.</string>
+    <string name="diagnostics_other">Failed to start proxy:\n%1$s</string>
+    <string name="error_config">Failed to start proxy: invalid settings.\n%1$s\n\nFix it in Settings and start again.</string>
+
+    <!-- Notification -->
+    <string name="notification_channel">Proxy status</string>
+    <string name="notification_channel_description">Keeps the proxy running in the background</string>
+    <string name="notification_starting">Starting…</string>
+    <string name="notification_listening">MTProto proxy on %1$s</string>
+    <string name="notification_failed_title">Proxy is not running</string>
 </resources>
