@@ -10,7 +10,7 @@ object ProxyLog {
     /** Debug lines are dropped unless verbose logging is on. */
     @Volatile var verbose: Boolean = false
 
-    /** Hide non-Telegram domain names in log lines (upstream's DomainCensorFilter). */
+    /** Hide non-Telegram domain names and the proxy secret in log lines (upstream's DomainCensorFilter). */
     @Volatile var censorDomains: Boolean = true
 
     @Volatile var sink: (Level, String) -> Unit = { level, msg -> println("${level.name.padEnd(5)} $msg") }
@@ -39,10 +39,22 @@ object ProxyLog {
     )
 
     /**
+     * "secret=dd<hex>" of a tg://proxy link and "Secret: <hex>" of the startup banner. The first
+     * eight characters stay readable as a hint of which secret the log line is about.
+     */
+    private val secretPattern = Regex("(?i)(secret[=:]\\s*)([0-9a-f]{8})[0-9a-f]+")
+
+    /**
      * Masks the second half of every label except the TLD, leaving telegram.org names
      * and *.log file names as they are: "example.com" becomes "exa****.com".
+     *
+     * The proxy secret and the tg:// link are masked too: both are logged on every start, so a
+     * shared log would otherwise hand over a working proxy.
      */
-    fun censor(text: String): String = domainPattern.replace(text) { m ->
+    fun censor(text: String): String =
+        censorDomains(secretPattern.replace(text) { m -> m.groupValues[1] + m.groupValues[2] + "****" })
+
+    private fun censorDomains(text: String): String = domainPattern.replace(text) { m ->
         val domain = m.value
         val normalized = domain.lowercase().trimEnd('.')
         if (CODE_PREFIXES.any { normalized.startsWith(it) }) return@replace domain

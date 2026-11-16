@@ -50,6 +50,7 @@
     <string name="connectivity_cfproxy_title">CF-прокси</string>
     <string name="connectivity_cfproxy_domain_title">CF-прокси: %1$s</string>
     <string name="connectivity_cfproxy_auto_title">CF-прокси (автоматические домены)</string>
+    <string name="connectivity_cfproxy_auto_domain_title">CF-прокси (авто): %1$s</string>
     <string name="connectivity_cfworker_title">CF Worker</string>
     <string name="connectivity_cfworker_domain_title">CF Worker: %1$s</string>
     <string name="connectivity_all_ok">✓ Всё работает: доступны все серверы (%1$d)</string>
@@ -61,6 +62,11 @@
     <string name="connectivity_timeout">таймаут</string>
     <string name="connectivity_no_response">нет ответа</string>
     <string name="connectivity_host_not_found">хост не найден (DNS)</string>
+    <string name="connectivity_media">медиа</string>
+    <string name="connectivity_ok_fronting">OK (fronting)</string>
+    <string name="connectivity_auto_partial">~ %1$s работает частично: доступны %2$d из %3$d серверов</string>
+    <string name="connectivity_cancelled">Проверка остановлена.</string>
+    <string name="connectivity_failed">Проверка не удалась: %1$s</string>
 
     <!-- Logs -->
     <string name="logs_title">Логи</string>
@@ -71,6 +77,7 @@
     <string name="action_clear">Очистить</string>
     <string name="logs_share_subject">Лог TG WS Proxy</string>
     <string name="logs_share_chooser">Отправить лог</string>
+    <string name="logs_share_truncated">… ранние строки опущены</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Настройки</string>
@@ -139,12 +146,13 @@
     <!-- Updates (upstream updates.*, update.*) -->
     <string name="section_updates">Обновления</string>
     <string name="label_check_updates">Проверять обновления при запуске</string>
-    <string name="tip_check_updates">Сравнивает эту версию с последним релизом на GitHub; ничего не устанавливается автоматически</string>
+    <string name="tip_check_updates">Сравнивает эту версию с последним релизом на GitHub (api.github.com); ничего не устанавливается автоматически</string>
     <string name="action_check_updates">Проверить обновления</string>
     <string name="action_open_release">Открыть страницу релиза</string>
+    <string name="action_skip_version">Пропустить эту версию</string>
     <string name="action_close">Закрыть</string>
     <string name="updates_status_pending">Обновления ещё не проверялись.</string>
-    <string name="updates_status_checking">Проверка обновлений...</string>
+    <string name="updates_status_checking">Проверка обновлений…</string>
     <string name="updates_status_available">На GitHub доступна версия %1$s (у вас %2$s).</string>
     <string name="updates_status_ahead">У вас %1$s — новее последнего релиза на GitHub (%2$s).</string>
     <string name="updates_status_latest">Установлена последняя известная версия с GitHub.</string>

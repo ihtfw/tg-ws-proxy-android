@@ -137,13 +137,19 @@ private fun logColor(line: String) = when (line.getOrNull(13)) {
     else -> MaterialTheme.colorScheme.onSurface
 }
 
+/** Binder transactions are limited to about 1 MB; a verbose log of 2000 lines can get close. */
+private const val MAX_SHARE_CHARS = 200_000
+
 private fun shareLog(context: Context, lines: List<String>) {
     val header = "TG WS Proxy ${appVersion(context)}, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"
-    val text = ProxyLog.censor((listOf(header, "") + lines).joinToString("\n"))
+    var text = (listOf(header, "") + lines).joinToString("\n")
+    if (text.length > MAX_SHARE_CHARS) {
+        text = context.getString(R.string.logs_share_truncated) + "\n" + text.takeLast(MAX_SHARE_CHARS)
+    }
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.logs_share_subject))
-        putExtra(Intent.EXTRA_TEXT, text)
+        putExtra(Intent.EXTRA_TEXT, ProxyLog.censor(text))
     }
     context.startActivity(Intent.createChooser(send, context.getString(R.string.logs_share_chooser)))
 }

@@ -52,6 +52,7 @@
     <string name="connectivity_cfproxy_title">CF Proxy</string>
     <string name="connectivity_cfproxy_domain_title">CF Proxy: %1$s</string>
     <string name="connectivity_cfproxy_auto_title">CF Proxy (automatic domains)</string>
+    <string name="connectivity_cfproxy_auto_domain_title">CF Proxy (automatic): %1$s</string>
     <string name="connectivity_cfworker_title">CF Worker</string>
     <string name="connectivity_cfworker_domain_title">CF Worker: %1$s</string>
     <string name="connectivity_all_ok">✓ All working: all %1$d servers reachable</string>
@@ -63,6 +64,11 @@
     <string name="connectivity_timeout">timeout</string>
     <string name="connectivity_no_response">no response</string>
     <string name="connectivity_host_not_found">host not found (DNS)</string>
+    <string name="connectivity_media">media</string>
+    <string name="connectivity_ok_fronting">OK (fronting)</string>
+    <string name="connectivity_auto_partial">~ %1$s is only partly reachable: %2$d of %3$d servers</string>
+    <string name="connectivity_cancelled">Check stopped.</string>
+    <string name="connectivity_failed">Check failed: %1$s</string>
 
     <!-- Logs -->
     <string name="logs_title">Logs</string>
@@ -73,6 +79,7 @@
     <string name="action_clear">Clear</string>
     <string name="logs_share_subject">TG WS Proxy log</string>
     <string name="logs_share_chooser">Share log</string>
+    <string name="logs_share_truncated">… older lines omitted</string>
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
@@ -141,12 +148,13 @@
     <!-- Updates (upstream updates.*, update.*) -->
     <string name="section_updates">Updates</string>
     <string name="label_check_updates">Check for updates on startup</string>
-    <string name="tip_check_updates">Compares this version with the latest release on GitHub; nothing is installed automatically</string>
+    <string name="tip_check_updates">Compares this version with the latest release on GitHub (api.github.com); nothing is installed automatically</string>
     <string name="action_check_updates">Check for updates</string>
     <string name="action_open_release">Open release page</string>
+    <string name="action_skip_version">Skip this version</string>
     <string name="action_close">Close</string>
     <string name="updates_status_pending">Updates have not been checked yet.</string>
-    <string name="updates_status_checking">Checking for updates...</string>
+    <string name="updates_status_checking">Checking for updates…</string>
     <string name="updates_status_available">Version %1$s is available on GitHub (you have %2$s).</string>
     <string name="updates_status_ahead">You have %1$s — newer than the latest GitHub release (%2$s).</string>
     <string name="updates_status_latest">Latest known version from GitHub is installed.</string>

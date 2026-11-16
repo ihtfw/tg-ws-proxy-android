@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -53,18 +55,30 @@ object Updates {
     fun check(context: Context, offerIfNewer: Boolean = false) {
         if (_checking.value) return
         _checking.value = true
-        val version = appVersion(context.applicationContext)
+        val app = context.applicationContext
+        val version = appVersion(app)
+        val skipped = ProxyConfig(app).skippedUpdate
         thread(name = "update-check", isDaemon = true) {
-            val st = UpdateCheck.check(version)
-            if (st.error != null) {
-                ProxyLog.w("Update check failed: ${st.error}")
-            } else {
-                ProxyLog.i("Update check: latest release ${st.latest}, installed $version")
+            try {
+                val st = UpdateCheck.check(version)
+                if (st.error != null) {
+                    ProxyLog.w("Update check failed: ${st.error}")
+                } else {
+                    ProxyLog.i("Update check: latest release ${st.latest}, installed $version")
+                }
+                _status.value = st
+                if (offerIfNewer && st.hasUpdate && st.latest != skipped) _offer.value = true
+            } finally {
+                // An Error must not leave the button disabled until the next start.
+                _checking.value = false
             }
-            _status.value = st
-            if (offerIfNewer && st.hasUpdate) _offer.value = true
-            _checking.value = false
         }
+    }
+
+    /** Keeps this release out of the start-up offer; the next one is offered again. */
+    fun skipVersion(context: Context) {
+        _status.value.latest?.let { ProxyConfig(context.applicationContext).skippedUpdate = it }
+        _offer.value = false
     }
 
     fun dismissOffer() {
@@ -98,7 +112,12 @@ fun UpdateOfferDialog() {
             }) { Text(stringResource(R.string.action_open_release)) }
         },
         dismissButton = {
-            TextButton(onClick = { Updates.dismissOffer() }) { Text(stringResource(R.string.action_close)) }
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = { Updates.skipVersion(context) }) {
+                    Text(stringResource(R.string.action_skip_version))
+                }
+                TextButton(onClick = { Updates.dismissOffer() }) { Text(stringResource(R.string.action_close)) }
+            }
         },
     )
 }

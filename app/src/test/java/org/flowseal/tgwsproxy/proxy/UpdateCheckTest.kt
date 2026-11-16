@@ -87,4 +87,23 @@ class UpdateCheckTest {
         assertEquals(listOf(1L, 2.5, true, false, null, "xA\n"), v["a"])
         assertEquals(emptyMap<String, Any?>(), v["b"])
     }
+
+    @Test
+    fun rejectsJsonNestedTooDeep() {
+        for (deep in listOf("[".repeat(500) + "]".repeat(500), "{\"a\":".repeat(500) + "1" + "}".repeat(500))) {
+            try {
+                MiniJson.parse(deep)
+                fail("accepted deeply nested JSON")
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+    }
+
+    @Test
+    fun anUnknownInstalledVersionIsNotAnUpdate() {
+        val st = UpdateCheck.check("") { UpdateCheck.Release("2.0.0", UpdateCheck.RELEASES_PAGE) }
+        assertFalse(st.hasUpdate)
+        assertFalse(st.aheadOfRelease)
+        assertEquals("2.0.0", st.latest)
+    }
 }

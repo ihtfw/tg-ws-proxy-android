@@ -29,7 +29,7 @@ Telegram → MTProto proxy (127.0.0.1:1443) → WebSocket (TLS) → Telegram DC
 - **Fake TLS** (`ee` secret) — for a proxy reachable from other devices: looks like TLS to a real site and forwards anyone without the secret to that site
 - **Test DCs** — test-environment DCs (10001+) are detected; they can also be forced for every connection ([details](https://github.com/Flowseal/tg-ws-proxy/blob/main/docs/EN/TestDc.md))
 - **TCP fallback with backoff**, MTProto packet splitting, auto DC detection
-- **Connectivity check** of every DC and fallback, **update check**, **logs** with domains masked and sharing
+- **Connectivity check** of every DC and fallback — plain, media and SNI fronting — **update check** (off by default), **logs** with the proxy secret and other domains masked, and sharing
 - **Foreground service** with wake lock, **start on boot**, light and dark themes, English and Russian
 
 ## Quick start
@@ -63,6 +63,7 @@ Upgrading from 1.x, which was a SOCKS5 proxy on port 1080: remove the old SOCKS5
 | Pool size | `4` | Pre-opened WebSockets per DC (0 disables direct WebSockets) |
 | Buffer KB | `256` | Socket buffer size |
 | Start on boot | Off | Start the proxy when the device boots |
+| Check updates on start | Off | Compare with the latest GitHub release (contacts api.github.com); nothing is installed |
 
 Settings are applied with **Save & Restart**.
 

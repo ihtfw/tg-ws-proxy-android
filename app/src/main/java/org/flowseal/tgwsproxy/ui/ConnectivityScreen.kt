@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +29,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.flowseal.tgwsproxy.R
@@ -38,6 +41,7 @@ import org.flowseal.tgwsproxy.proxy.ProxyLog
 import org.flowseal.tgwsproxy.service.ConfigException
 import org.flowseal.tgwsproxy.service.ProxyConfig
 import org.flowseal.tgwsproxy.service.message
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Tests, from this device, every route the saved settings use (upstream ui/connectivity.py). */
 @Composable
@@ -48,6 +52,7 @@ fun ConnectivityScreen(config: ProxyConfig, onClose: () -> Unit) {
     var route by remember { mutableStateOf<Connectivity.Route?>(null) }
     var groups by remember { mutableStateOf<List<Connectivity.Group>?>(null) }
     var problem by remember { mutableStateOf<String?>(null) }
+    val stopped = remember { AtomicBoolean(false) }
 
     val run: () -> Unit = run@{
         val settings = try {
@@ -65,17 +70,36 @@ fun ConnectivityScreen(config: ProxyConfig, onClose: () -> Unit) {
         problem = null
         running = true
         groups = null
+        stopped.set(false)
         scope.launch {
             ProxyLog.i("Connectivity check started")
-            val result = withContext(Dispatchers.IO) {
-                Connectivity.check(plan, onRoute = { r -> scope.launch { route = r } })
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    val job = coroutineContext[Job]
+                    Connectivity.check(
+                        plan,
+                        onRoute = { r -> scope.launch { route = r } },
+                        // Leaving the screen cancels the coroutine, the Cancel button sets the flag:
+                        // the check stops within one poll instead of holding its sockets for minutes.
+                        shouldStop = { stopped.get() || job?.isActive == false },
+                    )
+                }
+                for (g in result) {
+                    ProxyLog.i("Connectivity ${g.route} ${g.name.orEmpty()}: ${g.okCount}/${g.results.size} OK")
+                }
+                groups = result
+            } catch (e: Connectivity.CheckCancelled) {
+                ProxyLog.i("Connectivity check stopped")
+                problem = context.getString(R.string.connectivity_cancelled)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ProxyLog.e("Connectivity check failed: ${e.message ?: e.javaClass.simpleName}")
+                problem = context.getString(R.string.connectivity_failed, e.message ?: e.javaClass.simpleName)
+            } finally {
+                running = false
+                route = null
             }
-            for (g in result) {
-                ProxyLog.i("Connectivity ${g.route}${if (g.route == Connectivity.Route.CF_PROXY_AUTO) "" else " ${g.name.orEmpty()}"}: ${g.okCount}/${g.results.size} OK")
-            }
-            groups = result
-            running = false
-            route = null
         }
     }
 
@@ -109,6 +133,11 @@ fun ConnectivityScreen(config: ProxyConfig, onClose: () -> Unit) {
                     Text(stringResource(R.string.action_run_check))
                 }
             }
+            if (running) {
+                OutlinedButton(onClick = { stopped.set(true) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
             if (running && route != null) {
                 Text(
                     routeTitle(route!!, null),
@@ -130,7 +159,9 @@ private fun routeTitle(route: Connectivity.Route, name: String?): String = when 
     Connectivity.Route.CF_PROXY ->
         if (name != null) stringResource(R.string.connectivity_cfproxy_domain_title, name)
         else stringResource(R.string.connectivity_cfproxy_title)
-    Connectivity.Route.CF_PROXY_AUTO -> stringResource(R.string.connectivity_cfproxy_auto_title)
+    Connectivity.Route.CF_PROXY_AUTO ->
+        if (name != null) stringResource(R.string.connectivity_cfproxy_auto_domain_title, name)
+        else stringResource(R.string.connectivity_cfproxy_auto_title)
     Connectivity.Route.CF_WORKER ->
         if (name != null) stringResource(R.string.connectivity_cfworker_domain_title, name)
         else stringResource(R.string.connectivity_cfworker_title)
@@ -139,12 +170,16 @@ private fun routeTitle(route: Connectivity.Route, name: String?): String = when 
 @Composable
 private fun GroupCard(group: Connectivity.Group) {
     val auto = group.route == Connectivity.Route.CF_PROXY_AUTO
-    SectionCard(title = routeTitle(group.route, if (auto) null else group.name)) {
+    SectionCard(title = routeTitle(group.route, group.name)) {
         val total = group.results.size
+        val cfProxy = stringResource(R.string.connectivity_cfproxy_title)
         val (summary, color) = when {
-            auto && group.okCount > 0 -> stringResource(
-                R.string.connectivity_auto_ok, stringResource(R.string.connectivity_cfproxy_title), group.okCount, total,
+            auto && group.allOk -> stringResource(
+                R.string.connectivity_auto_ok, cfProxy, group.okCount, total,
             ) to StatusColors.running
+            auto && group.okCount > 0 -> stringResource(
+                R.string.connectivity_auto_partial, cfProxy, group.okCount, total,
+            ) to StatusColors.stopped
             auto -> stringResource(R.string.connectivity_cf_auto_fail) to StatusColors.failed
             group.allOk -> stringResource(R.string.connectivity_all_ok, total) to StatusColors.running
             group.noneOk -> stringResource(R.string.connectivity_unavailable) to StatusColors.failed
@@ -159,6 +194,7 @@ private fun GroupCard(group: Connectivity.Group) {
 
 @Composable
 private fun DcRow(result: Connectivity.DcResult, censor: Boolean) {
+    val media = stringResource(R.string.connectivity_media)
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Text(
             if (result.ok) "✓" else "✗",
@@ -168,7 +204,10 @@ private fun DcRow(result: Connectivity.DcResult, censor: Boolean) {
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                "DC${result.dc}  ${result.target}",
+                buildString {
+                    append("DC").append(result.dc).append("  ").append(result.target)
+                    if (result.media) append("  ").append(media)
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 fontFamily = FontFamily.Monospace,
             )
@@ -182,14 +221,20 @@ private fun DcRow(result: Connectivity.DcResult, censor: Boolean) {
             }
         }
         if (result.ok) {
-            Text(stringResource(R.string.connectivity_ok), color = StatusColors.running, style = MaterialTheme.typography.bodyMedium)
+            val fronting = (result.outcome as? Connectivity.Outcome.Ok)?.viaFronting == true
+            Text(
+                if (fronting) stringResource(R.string.connectivity_ok_fronting) else stringResource(R.string.connectivity_ok),
+                color = StatusColors.running,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }
 
 @Composable
 private fun outcomeText(outcome: Connectivity.Outcome): String = when (outcome) {
-    Connectivity.Outcome.Ok -> stringResource(R.string.connectivity_ok)
+    is Connectivity.Outcome.Ok ->
+        if (outcome.viaFronting) stringResource(R.string.connectivity_ok_fronting) else stringResource(R.string.connectivity_ok)
     Connectivity.Outcome.Timeout -> stringResource(R.string.connectivity_timeout)
     Connectivity.Outcome.NoResponse -> stringResource(R.string.connectivity_no_response)
     Connectivity.Outcome.HostNotFound -> stringResource(R.string.connectivity_host_not_found)

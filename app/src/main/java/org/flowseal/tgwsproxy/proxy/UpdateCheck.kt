@@ -83,11 +83,13 @@ object UpdateCheck {
     /** The whole result at once; failures end up in [Status.error]. */
     fun check(currentVersion: String, fetch: () -> Release = { fetchLatest() }): Status = try {
         val release = fetch()
+        val installed = currentVersion.trim()
         Status(
             checked = true,
             latest = release.version,
-            hasUpdate = isNewer(release.version, currentVersion),
-            aheadOfRelease = isNewer(currentVersion, release.version),
+            // A build whose version PackageManager did not report is never "behind".
+            hasUpdate = installed.isNotEmpty() && isNewer(release.version, installed),
+            aheadOfRelease = installed.isNotEmpty() && isNewer(installed, release.version),
             htmlUrl = release.htmlUrl,
         )
     } catch (e: Exception) {
@@ -100,9 +102,12 @@ internal class MiniJson private constructor(private val s: String) {
     private var i = 0
 
     companion object {
+        /** The answer from GitHub is three levels deep; anything deeper is not worth a stack. */
+        private const val MAX_DEPTH = 64
+
         fun parse(text: String): Any? {
             val p = MiniJson(text)
-            val v = p.value()
+            val v = p.value(0)
             p.ws()
             require(p.i == text.length) { "Trailing data in JSON at ${p.i}" }
             return v
@@ -113,12 +118,13 @@ internal class MiniJson private constructor(private val s: String) {
         while (i < s.length && s[i].isWhitespace()) i++
     }
 
-    private fun value(): Any? {
+    private fun value(depth: Int): Any? {
+        require(depth <= MAX_DEPTH) { "JSON nested too deep" }
         ws()
         require(i < s.length) { "Unexpected end of JSON" }
         return when (val c = s[i]) {
-            '{' -> obj()
-            '[' -> arr()
+            '{' -> obj(depth + 1)
+            '[' -> arr(depth + 1)
             '"' -> str()
             't' -> literal("true", true)
             'f' -> literal("false", false)
@@ -133,7 +139,7 @@ internal class MiniJson private constructor(private val s: String) {
         return v
     }
 
-    private fun obj(): Map<String, Any?> {
+    private fun obj(depth: Int): Map<String, Any?> {
         val m = LinkedHashMap<String, Any?>()
         i++
         ws()
@@ -145,7 +151,7 @@ internal class MiniJson private constructor(private val s: String) {
             ws()
             require(s.getOrNull(i) == ':') { "Expected ':' at $i" }
             i++
-            m[k] = value()
+            m[k] = value(depth)
             ws()
             when (s.getOrNull(i)) {
                 ',' -> i++
@@ -155,13 +161,13 @@ internal class MiniJson private constructor(private val s: String) {
         }
     }
 
-    private fun arr(): List<Any?> {
+    private fun arr(depth: Int): List<Any?> {
         val l = ArrayList<Any?>()
         i++
         ws()
         if (s.getOrNull(i) == ']') { i++; return l }
         while (true) {
-            l += value()
+            l += value(depth)
             ws()
             when (s.getOrNull(i)) {
                 ',' -> i++
