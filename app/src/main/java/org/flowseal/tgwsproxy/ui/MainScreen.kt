@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.NetworkCheck
@@ -68,7 +69,12 @@ import org.flowseal.tgwsproxy.service.ProxyState
 import org.flowseal.tgwsproxy.service.SettingsDraft
 
 @Composable
-fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit, onOpenConnectivity: () -> Unit) {
+fun MainScreen(
+    config: ProxyConfig,
+    onOpenSettings: () -> Unit,
+    onOpenConnectivity: () -> Unit,
+    onOpenLogs: () -> Unit,
+) {
     val context = LocalContext.current
     val status by ProxyState.status.collectAsState()
 
@@ -85,6 +91,9 @@ fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit, onOpenConnectivi
             AppTopBar(
                 title = stringResource(R.string.app_name),
                 actions = {
+                    IconButton(onClick = onOpenLogs) {
+                        Icon(Icons.AutoMirrored.Filled.Article, stringResource(R.string.logs_title))
+                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Default.Settings, stringResource(R.string.settings_title))
                     }
@@ -110,7 +119,7 @@ fun MainScreen(config: ProxyConfig, onOpenSettings: () -> Unit, onOpenConnectivi
                 Text(stringResource(R.string.action_check_connectivity))
             }
             if (running != null) StatsCard()
-            RecentLogCard()
+            RecentLogCard(onOpenLogs)
         }
     }
 }
@@ -309,7 +318,7 @@ private fun StatRow(label: String, value: String) {
 }
 
 @Composable
-private fun RecentLogCard() {
+private fun RecentLogCard(onOpenLogs: () -> Unit) {
     val version by LogBuffer.version.collectAsState()
     val lines = remember(version) { LogBuffer.snapshot().takeLast(RECENT_LOG_LINES) }
     if (lines.isEmpty()) return
@@ -330,7 +339,10 @@ private fun RecentLogCard() {
                 )
             }
         }
+        OutlinedButton(onClick = onOpenLogs, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_open_logs))
+        }
     }
 }
 
-private const val RECENT_LOG_LINES = 20
+private const val RECENT_LOG_LINES = 8

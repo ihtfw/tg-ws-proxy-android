@@ -64,6 +64,16 @@
     <string name="connectivity_no_response">no response</string>
     <string name="connectivity_host_not_found">host not found (DNS)</string>
 
+    <!-- Logs -->
+    <string name="logs_title">Logs</string>
+    <string name="action_open_logs">Open logs</string>
+    <string name="logs_empty">No log lines yet.</string>
+    <string name="logs_hint">When shared, domain names other than Telegram\'s are masked.</string>
+    <string name="action_share">Share</string>
+    <string name="action_clear">Clear</string>
+    <string name="logs_share_subject">TG WS Proxy log</string>
+    <string name="logs_share_chooser">Share log</string>
+
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="section_mtproto">MTProto Connection</string>
