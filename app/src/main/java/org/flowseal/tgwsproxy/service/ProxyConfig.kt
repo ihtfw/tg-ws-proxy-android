@@ -91,6 +91,11 @@ class ProxyConfig(context: Context) {
         get() = prefs.getString(KEY_THEME, null) ?: "system"
         set(value) = prefs.edit().putString(KEY_THEME, value).apply()
 
+    /** Ask GitHub for a newer release when the app opens. */
+    var checkUpdates: Boolean
+        get() = prefs.getBoolean(KEY_CHECK_UPDATES, true)
+        set(value) = prefs.edit().putBoolean(KEY_CHECK_UPDATES, value).apply()
+
     /** Debug lines in the log. */
     var verbose: Boolean
         get() = prefs.getBoolean(KEY_VERBOSE, false)
@@ -188,5 +193,6 @@ class ProxyConfig(context: Context) {
         private const val KEY_AUTOSTART = "autostart"
         private const val KEY_THEME = "theme_mode"
         private const val KEY_VERBOSE = "verbose"
+        private const val KEY_CHECK_UPDATES = "check_updates"
     }
 }

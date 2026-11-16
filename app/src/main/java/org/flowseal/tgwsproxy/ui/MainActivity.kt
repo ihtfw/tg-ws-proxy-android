@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val config = ProxyConfig(this)
+        Updates.checkOnStart(applicationContext)
         setContent {
             var themeMode by remember { mutableStateOf(config.themeMode) }
             val dark = isDarkTheme(themeMode)
@@ -69,6 +70,7 @@ enum class Screen { MAIN, SETTINGS, CONNECTIVITY }
 fun AppNavigation(config: ProxyConfig, themeMode: String, onThemeModeChange: (String) -> Unit) {
     var screen by rememberSaveable { mutableStateOf(Screen.MAIN) }
     BackHandler(enabled = screen != Screen.MAIN) { screen = Screen.MAIN }
+    UpdateOfferDialog()
     when (screen) {
         Screen.MAIN -> MainScreen(
             config = config,
