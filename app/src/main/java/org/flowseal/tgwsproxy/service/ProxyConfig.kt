@@ -76,6 +76,11 @@ class ProxyConfig(context: Context) {
         get() = prefs.getBoolean(KEY_NO_SECURE, false)
         set(value) = prefs.edit().putBoolean(KEY_NO_SECURE, value).apply()
 
+    /** Empty, or the domain Fake TLS (ee secret) masks as. */
+    var fakeTlsDomain: String
+        get() = prefs.getString(KEY_FAKE_TLS_DOMAIN, null).orEmpty()
+        set(value) = prefs.edit().putString(KEY_FAKE_TLS_DOMAIN, value).apply()
+
     /** Start the proxy when the device boots. */
     var autostart: Boolean
         get() = prefs.getBoolean(KEY_AUTOSTART, false)
@@ -107,6 +112,7 @@ class ProxyConfig(context: Context) {
         cfWorkerEnabled = cfproxyWorkerEnabled,
         cfWorkerDomains = cfproxyWorkerDomains.joinToString(", "),
         noSecure = noSecure,
+        fakeTlsDomain = fakeTlsDomain,
     )
 
     /**
@@ -130,6 +136,7 @@ class ProxyConfig(context: Context) {
             .putBoolean(KEY_CF_WORKER_ENABLED, draft.cfWorkerEnabled)
             .putString(KEY_CF_WORKER_DOMAINS, draft.cfWorkerDomainList().joinToString(","))
             .putBoolean(KEY_NO_SECURE, draft.noSecure)
+            .putString(KEY_FAKE_TLS_DOMAIN, s.fakeTlsDomain)
             .apply()
     }
 
@@ -177,6 +184,7 @@ class ProxyConfig(context: Context) {
         private const val KEY_CF_WORKER_ENABLED = "cfproxy_worker_enabled"
         private const val KEY_CF_WORKER_DOMAINS = "cfproxy_worker_domain"
         private const val KEY_NO_SECURE = "no_secure"
+        private const val KEY_FAKE_TLS_DOMAIN = "fake_tls_domain"
         private const val KEY_AUTOSTART = "autostart"
         private const val KEY_THEME = "theme_mode"
         private const val KEY_VERBOSE = "verbose"

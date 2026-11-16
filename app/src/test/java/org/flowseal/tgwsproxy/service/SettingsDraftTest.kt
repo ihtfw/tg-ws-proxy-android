@@ -150,6 +150,22 @@ class SettingsDraftTest {
     }
 
     @Test
+    fun fakeTlsDomain() {
+        assertEquals("", valid.toProxySettings().fakeTlsDomain)
+        val s = valid.copy(fakeTlsDomain = " Example.com ").toProxySettings()
+        assertEquals("example.com", s.fakeTlsDomain)
+        val domainHex = "6578616d706c652e636f6d"
+        assertEquals(
+            "tg://proxy?server=127.0.0.1&port=1443&secret=ee${secret.lowercase()}$domainHex",
+            s.proxyLink(),
+        )
+        expectError(
+            valid.copy(fakeTlsDomain = "https://example.com"),
+            ConfigField.FAKE_TLS_DOMAIN, ConfigError.Kind.BAD_DOMAIN, "https://example.com",
+        )
+    }
+
+    @Test
     fun newSecretIsValid() {
         val a = SettingsDraft.newSecret()
         assertEquals(32, a.length)
