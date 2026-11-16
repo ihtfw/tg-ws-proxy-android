@@ -73,10 +73,22 @@ class LiveProxyTest {
             sock.connect(InetSocketAddress("127.0.0.1", s.port), 5000)
             sock.soTimeout = 20_000
             val out = sock.getOutputStream()
-            out.write(init)
-            out.write(enc.update(packet.array()))
+            val payload = init + enc.update(packet.array())
+            var input: InputStream = sock.getInputStream()
+            if (s.fakeTlsDomain.isNotEmpty()) {
+                out.write(Tls.telegramClientHello(s.fakeTlsDomain, secret))
+                out.flush()
+                for (prefixLen in listOf(3, 9)) { // ServerHello record; CCS + first appdata record
+                    val p = input.readExactly(prefixLen + 2)
+                    input.readExactly(Bytes.u16be(p, p.size - 2))
+                }
+                out.write(byteArrayOf(0x14, 0x03, 0x03, 0x00, 0x01, 0x01))
+                out.write(FakeTls.wrapTlsRecord(payload, 0, payload.size))
+                input = FakeTlsInputStream(input)
+            } else {
+                out.write(payload)
+            }
             out.flush()
-            val input: InputStream = sock.getInputStream()
             val lenBytes = dec.update(input.readExactly(4))
             val len = (Bytes.u32le(lenBytes, 0) and 0x7FFFFFFF).toInt()
             val body = dec.update(input.readExactly(len))
@@ -132,6 +144,17 @@ class LiveProxyTest {
     fun domainListFromGitHub() {
         val list = CfProxyDomains.normalize(CfProxyDomains.parseList(CfProxyDomains.fetch(CfProxyDomains.DOMAINS_URL)))
         assert(list.size >= 3) { "only ${list.size} domains" }
+    }
+
+    @Test
+    fun throughFakeTls() {
+        val s = startProxy(ProxySettings(fakeTlsDomain = "www.google.com", fallbackCfproxy = false))
+        Thread.sleep(4000)
+        assert(s.proxyLink().contains("secret=ee"))
+        roundTrip(s, 2)
+        roundTrip(s, -4, MtConst.PROTO_TAG_SECURE)
+        assertEquals(0L, server!!.stats.connectionsMasked.get())
+        assert(lines.any { "Fake TLS profile" in it })
     }
 
     @Test

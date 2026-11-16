@@ -52,6 +52,10 @@ class ProxyServer(val settings: ProxySettings) {
     fun start() {
         if (running) return
         RawWebSocket.socketBufferSize = settings.bufferSize
+        // Probe before listening, so a masking domain that resolves to this proxy fails fast
+        // instead of answering itself
+        FakeTls.profiledAppdataLen = null
+        if (settings.fakeTlsDomain.isNotEmpty()) FakeTls.profileMaskingSite(settings.fakeTlsDomain)
         serverSocket = bind()
         running = true
 
@@ -119,6 +123,7 @@ class ProxyServer(val settings: ProxySettings) {
         ProxyLog.i("  Telegram MTProto WS Bridge Proxy")
         ProxyLog.i("  Listening on   ${settings.host}:${settings.port}")
         ProxyLog.i("  Secret:        ${settings.secretHex}")
+        if (settings.fakeTlsDomain.isNotEmpty()) ProxyLog.i("  Fake TLS:      ${settings.fakeTlsDomain}")
         ProxyLog.i("  Target DC IPs:")
         for (dc in settings.dcRedirects.keys.sorted()) ProxyLog.i("    DC$dc: ${settings.dcRedirects[dc]}")
         if (settings.fallbackCfproxy) {
@@ -258,6 +263,21 @@ class ProxyServer(val settings: ProxySettings) {
         val first = input.read()
         if (first < 0) {
             ProxyLog.d { "[$label] client disconnected before handshake" }
+            return null
+        }
+        val masking = settings.fakeTlsDomain
+        if (first == FakeTls.TLS_RECORD_HANDSHAKE && masking.isNotEmpty()) {
+            val (tlsIn, tlsOut) = FakeTls.accept(first, input, output, secret, masking, label, ctx) ?: return null
+            return ClientInit(tlsIn.readExactly(MtConst.HANDSHAKE_LEN), tlsIn, tlsOut)
+        }
+        if (masking.isNotEmpty()) {
+            // With Fake TLS on, anything but TLS is a browser or a prober: send it to the real site
+            ProxyLog.d { "[$label] non-TLS byte 0x%02X -> HTTP redirect".format(first) }
+            output.write(
+                ("HTTP/1.1 301 Moved Permanently\r\nLocation: https://$masking/\r\n" +
+                    "Content-Length: 0\r\nConnection: close\r\n\r\n").toByteArray(Charsets.US_ASCII)
+            )
+            output.flush()
             return null
         }
         val rest = input.readExactly(MtConst.HANDSHAKE_LEN - 1)

@@ -42,45 +42,6 @@ class FakeTlsEndToEndTest {
     }
 
     /** tdlib's Chrome-like ClientHello grammar, with fixed GREASE values and random keys. */
-    private fun telegramClientHello(domain: String, secret: ByteArray, timestamp: Long = Tls.nowSeconds()): ByteArray {
-        val d = domain.toByteArray()
-        val extensions = listOf(
-            Tls.B().u16(0x0000).u16(d.size + 5).u16(d.size + 3).u8(0).u16(d.size).bytes(d),
-            Tls.B().bytes(Bytes.fromHex("000500050100000000")),
-            Tls.B().bytes(Bytes.fromHex("000a000c000a")).u16(0x4a4a).bytes(Bytes.fromHex("11ec001d00170018")),
-            Tls.B().bytes(Bytes.fromHex("000b00020100")),
-            Tls.B().bytes(Bytes.fromHex("000d0012001004030804040105030805050108060601")),
-            Tls.B().bytes(Bytes.fromHex("0010000e000c02683208687474702f312e31")),
-            Tls.B().bytes(Bytes.fromHex("00120000")),
-            Tls.B().bytes(Bytes.fromHex("00170000")),
-            Tls.B().bytes(Bytes.fromHex("001b0003020002")),
-            Tls.B().bytes(Bytes.fromHex("00230000")),
-            Tls.B().bytes(Bytes.fromHex("002b000706")).u16(0x6a6a).bytes(Bytes.fromHex("03040303")),
-            Tls.B().bytes(Bytes.fromHex("002d00020101")),
-            Tls.B().bytes(Bytes.fromHex("003304ef04ed")).u16(0x4a4a).bytes(Bytes.fromHex("00010011ec04c0"))
-                .bytes(Bytes.random(1184)).bytes(X25519.publicKey(X25519.generatePrivateKey()))
-                .bytes(Bytes.fromHex("001d0020")).bytes(X25519.publicKey(X25519.generatePrivateKey())),
-            Tls.B().bytes(Bytes.fromHex("44cd00050003026832")),
-            Tls.B().u16(0xfe0d).u16(5 + 1 + 2 + 32 + 2 + 144).bytes(Bytes.fromHex("0000010001"))
-                .bytes(Bytes.random(1)).u16(32).bytes(Bytes.random(32)).u16(144).bytes(Bytes.random(144)),
-            Tls.B().bytes(Bytes.fromHex("ff01000100")),
-        ).map { it.toByteArray() }.shuffled()
-
-        val ext = Tls.B().u16(0x2a2a).u16(0)
-        extensions.forEach { ext.bytes(it) }
-        ext.u16(0x3a3a).bytes(Bytes.fromHex("000100"))
-        val extBytes = ext.toByteArray()
-
-        val hello = Tls.B().u16(0x0303).bytes(ByteArray(32)).u8(0x20).bytes(Bytes.random(32))
-            .u16(0x0020).u16(0x0a0a)
-            .bytes(Bytes.fromHex("130113021303c02bc02fc02cc030cca9cca8c013c014009c009d002f0035"))
-            .bytes(Bytes.fromHex("0100")).u16(extBytes.size).bytes(extBytes)
-            .toByteArray()
-        val message = Tls.B().u8(0x01).u24(hello.size).bytes(hello).toByteArray()
-        val record = Tls.B().u8(0x16).u16(0x0301).u16(message.size).bytes(message).toByteArray()
-        return Tls.sign(record, secret, timestamp)
-    }
-
     /** Reads the answer to [hello] and checks it as tdlib's TlsInit::wait_hello_response does. */
     private fun readServerHello(input: InputStream, hello: ByteArray, secret: ByteArray): ByteArray {
         val response = ByteArrayOutputStream()
@@ -154,7 +115,7 @@ class FakeTlsEndToEndTest {
             val (thread, outcome) = serveOne(server, dead.localPort)
             Socket(InetAddress.getLoopbackAddress(), server.localPort).use { c ->
                 c.soTimeout = 10_000
-                val hello = telegramClientHello("example.com", SECRET)
+                val hello = Tls.telegramClientHello("example.com", SECRET)
                 val out = c.getOutputStream()
                 out.write(hello)
                 out.flush()
@@ -218,7 +179,7 @@ class FakeTlsEndToEndTest {
                 val (thread, outcome) = serveOne(server, site.localPort, soTimeoutMs = 150)
                 Socket(InetAddress.getLoopbackAddress(), server.localPort).use { c ->
                     c.soTimeout = 10_000
-                    val hello = telegramClientHello("example.com", Bytes.fromHex("ffeeddccbbaa99887766554433221100"))
+                    val hello = Tls.telegramClientHello("example.com", Bytes.fromHex("ffeeddccbbaa99887766554433221100"))
                     val out = c.getOutputStream()
                     out.write(hello)
                     out.flush()
@@ -245,7 +206,7 @@ class FakeTlsEndToEndTest {
             val got = AtomicReference<ByteArray>()
             maskingSite(site, answer, got)
             loopbackServer().use { server ->
-                val hello = telegramClientHello("example.com", SECRET)
+                val hello = Tls.telegramClientHello("example.com", SECRET)
 
                 val (t1, o1) = serveOne(server, site.localPort)
                 Socket(InetAddress.getLoopbackAddress(), server.localPort).use { c ->
@@ -277,7 +238,7 @@ class FakeTlsEndToEndTest {
             val (thread, _) = serveOne(server, dead.localPort)
             Socket(InetAddress.getLoopbackAddress(), server.localPort).use { c ->
                 c.soTimeout = 10_000
-                val hello = telegramClientHello("example.com", SECRET)
+                val hello = Tls.telegramClientHello("example.com", SECRET)
                 val start = System.nanoTime()
                 c.getOutputStream().write(hello)
                 readServerHello(c.getInputStream(), hello, SECRET)
