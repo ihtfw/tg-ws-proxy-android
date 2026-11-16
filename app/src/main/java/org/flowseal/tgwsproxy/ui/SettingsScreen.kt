@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -123,6 +124,7 @@ fun SettingsScreen(
         ) {
             ConnectionSection(draft, errors) { draft = it }
             DcSection(draft, errors) { draft = it }
+            CloudflareSection(draft, errors) { draft = it }
             AdvancedSection(draft, errors) { draft = it }
             AppSection(config, themeMode, onThemeModeChange)
             val version = remember { appVersion(context) }
@@ -194,6 +196,61 @@ private fun DcSection(draft: SettingsDraft, errors: Map<ConfigField, ConfigError
             error = errors[ConfigField.DC_IPS],
             monospace = true,
             singleLine = false,
+        )
+    }
+}
+
+@Composable
+private fun CloudflareSection(draft: SettingsDraft, errors: Map<ConfigField, ConfigError>, onChange: (SettingsDraft) -> Unit) {
+    SectionCard(title = stringResource(R.string.section_cloudflare)) {
+        SwitchRow(
+            title = stringResource(R.string.label_cf_enable),
+            subtitle = stringResource(R.string.tip_cfproxy),
+            checked = draft.cfproxy,
+            onCheckedChange = { onChange(draft.copy(cfproxy = it)) },
+        )
+        SwitchRow(
+            title = stringResource(R.string.label_cf_custom_domain),
+            subtitle = stringResource(R.string.tip_cfproxy_user_domain_cb),
+            checked = draft.cfUserDomainEnabled,
+            enabled = draft.cfproxy,
+            onCheckedChange = { onChange(draft.copy(cfUserDomainEnabled = it)) },
+        )
+        if (draft.cfproxy && draft.cfUserDomainEnabled) {
+            SettingsTextField(
+                value = draft.cfUserDomains,
+                onValueChange = { onChange(draft.copy(cfUserDomains = it)) },
+                label = stringResource(R.string.label_cf_domains),
+                hint = stringResource(R.string.tip_cfproxy_domain),
+                error = errors[ConfigField.CF_USER_DOMAINS],
+                keyboardType = KeyboardType.Uri,
+                singleLine = false,
+            )
+        }
+        HorizontalDivider()
+        SwitchRow(
+            title = stringResource(R.string.label_cfworker_enable),
+            subtitle = stringResource(R.string.tip_cfworker_enable),
+            checked = draft.cfWorkerEnabled,
+            onCheckedChange = { onChange(draft.copy(cfWorkerEnabled = it)) },
+        )
+        if (draft.cfWorkerEnabled) {
+            SettingsTextField(
+                value = draft.cfWorkerDomains,
+                onValueChange = { onChange(draft.copy(cfWorkerDomains = it)) },
+                label = stringResource(R.string.label_cfworker_domains),
+                hint = stringResource(R.string.tip_cfworker_domain),
+                error = errors[ConfigField.CF_WORKER_DOMAINS],
+                keyboardType = KeyboardType.Uri,
+                singleLine = false,
+            )
+        }
+        HorizontalDivider()
+        SwitchRow(
+            title = stringResource(R.string.label_no_secure),
+            subtitle = stringResource(R.string.tip_no_secure),
+            checked = draft.noSecure,
+            onCheckedChange = { onChange(draft.copy(noSecure = it)) },
         )
     }
 }

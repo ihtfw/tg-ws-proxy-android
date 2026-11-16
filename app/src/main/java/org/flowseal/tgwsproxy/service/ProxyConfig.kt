@@ -46,6 +46,31 @@ class ProxyConfig(context: Context) {
         get() = prefs.getBoolean(KEY_FORCE_TEST_DC, false)
         set(value) = prefs.edit().putBoolean(KEY_FORCE_TEST_DC, value).apply()
 
+    var cfproxy: Boolean
+        get() = prefs.getBoolean(KEY_CFPROXY, true)
+        set(value) = prefs.edit().putBoolean(KEY_CFPROXY, value).apply()
+
+    var cfproxyUserDomainEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CF_USER_DOMAIN_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_CF_USER_DOMAIN_ENABLED, value).apply()
+
+    var cfproxyUserDomains: List<String>
+        get() = ProxySettings.coerceDomainList(prefs.getString(KEY_CF_USER_DOMAINS, null).orEmpty())
+        set(value) = prefs.edit().putString(KEY_CF_USER_DOMAINS, value.joinToString(",")).apply()
+
+    var cfproxyWorkerEnabled: Boolean
+        get() = prefs.getBoolean(KEY_CF_WORKER_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_CF_WORKER_ENABLED, value).apply()
+
+    var cfproxyWorkerDomains: List<String>
+        get() = ProxySettings.coerceDomainList(prefs.getString(KEY_CF_WORKER_DOMAINS, null).orEmpty())
+        set(value) = prefs.edit().putString(KEY_CF_WORKER_DOMAINS, value.joinToString(",")).apply()
+
+    /** Port 80 without TLS for the CF proxy and CF worker. */
+    var noSecure: Boolean
+        get() = prefs.getBoolean(KEY_NO_SECURE, false)
+        set(value) = prefs.edit().putBoolean(KEY_NO_SECURE, value).apply()
+
     /** Start the proxy when the device boots. */
     var autostart: Boolean
         get() = prefs.getBoolean(KEY_AUTOSTART, false)
@@ -70,6 +95,12 @@ class ProxyConfig(context: Context) {
         poolSize = poolSize.toString(),
         bufKb = bufKb.toString(),
         forceTestDc = forceTestDc,
+        cfproxy = cfproxy,
+        cfUserDomainEnabled = cfproxyUserDomainEnabled,
+        cfUserDomains = cfproxyUserDomains.joinToString(", "),
+        cfWorkerEnabled = cfproxyWorkerEnabled,
+        cfWorkerDomains = cfproxyWorkerDomains.joinToString(", "),
+        noSecure = noSecure,
     )
 
     /**
@@ -86,6 +117,12 @@ class ProxyConfig(context: Context) {
             .putInt(KEY_POOL_SIZE, s.poolSize)
             .putInt(KEY_BUF_KB, s.bufferSize / 1024)
             .putBoolean(KEY_FORCE_TEST_DC, s.forceTestDc)
+            .putBoolean(KEY_CFPROXY, draft.cfproxy)
+            .putBoolean(KEY_CF_USER_DOMAIN_ENABLED, draft.cfUserDomainEnabled)
+            .putString(KEY_CF_USER_DOMAINS, draft.cfUserDomainList().joinToString(","))
+            .putBoolean(KEY_CF_WORKER_ENABLED, draft.cfWorkerEnabled)
+            .putString(KEY_CF_WORKER_DOMAINS, draft.cfWorkerDomainList().joinToString(","))
+            .putBoolean(KEY_NO_SECURE, draft.noSecure)
             .apply()
     }
 
@@ -126,6 +163,12 @@ class ProxyConfig(context: Context) {
         private const val KEY_POOL_SIZE = "pool_size"
         private const val KEY_BUF_KB = "buf_kb"
         private const val KEY_FORCE_TEST_DC = "force_test_dc"
+        private const val KEY_CFPROXY = "cfproxy"
+        private const val KEY_CF_USER_DOMAIN_ENABLED = "cfproxy_user_domain_enabled"
+        private const val KEY_CF_USER_DOMAINS = "cfproxy_user_domain"
+        private const val KEY_CF_WORKER_ENABLED = "cfproxy_worker_enabled"
+        private const val KEY_CF_WORKER_DOMAINS = "cfproxy_worker_domain"
+        private const val KEY_NO_SECURE = "no_secure"
         private const val KEY_AUTOSTART = "autostart"
         private const val KEY_THEME = "theme_mode"
         private const val KEY_VERBOSE = "verbose"

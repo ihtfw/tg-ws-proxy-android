@@ -52,6 +52,19 @@
     <string name="section_dc">Telegram Data Centers (DC → IP)</string>
     <string name="label_dc_hint">One rule per line, format: number:IP</string>
     <string name="tip_dc">Mapping of Telegram data center (DC) number to web.telegram.org dc server IP, e.g. 4:149.154.167.220. If connection fails then fallbacks are used</string>
+    <string name="section_cloudflare">Cloudflare</string>
+    <string name="label_cf_enable">Enable CF proxy</string>
+    <string name="tip_cfproxy">Use Cloudflare proxy for unreachable data centers</string>
+    <string name="label_cf_custom_domain">Custom domain</string>
+    <string name="tip_cfproxy_user_domain_cb">Specify your own domains instead of automatic selection</string>
+    <string name="label_cf_domains">Your CF proxy domains (comma-separated)</string>
+    <string name="tip_cfproxy_domain">Your own domains proxied through Cloudflare for HTTP/2 and WS connections. Separate multiple domains with commas. If empty — chosen automatically from supported domains</string>
+    <string name="label_cfworker_enable">Cloudflare Worker</string>
+    <string name="tip_cfworker_enable">Route connections to Telegram DCs through your own Cloudflare Worker</string>
+    <string name="label_cfworker_domains">Cloudflare Worker domains (comma-separated)</string>
+    <string name="tip_cfworker_domain">Cloudflare Worker domains (e.g. name.account.workers.dev). Separate multiple domains with commas. The proxy routes connections to Telegram DCs by IP through them</string>
+    <string name="label_no_secure">Disable TLS for CF-proxy and CF-worker</string>
+    <string name="tip_no_secure">When enabled, the proxy will use port 80 for CF-proxy and CF-worker connections</string>
     <string name="section_advanced">Advanced</string>
     <string name="label_listen_all">Listen on all interfaces</string>
     <string name="tip_listen_all">Off: only apps on this phone can connect (127.0.0.1). On: other devices on your network can connect too (0.0.0.0)</string>
@@ -83,6 +96,7 @@
     <string name="validation_bad_secret_hex">Secret must contain only hex characters (0-9, a-f).</string>
     <string name="validation_dc_format">Invalid DC:IP format: %1$s</string>
     <string name="validation_dc_invalid">Invalid DC:IP entry: %1$s</string>
+    <string name="validation_bad_domain">Invalid domain: %1$s. Enter a name like example.com, without http:// or a path</string>
     <string name="validation_bad_pool">Must be a number from %1$d to %2$d</string>
     <string name="validation_bad_buffer">Must be a number from %1$d to %2$d</string>
     <string name="validation_fix_fields">Fix the highlighted fields to save.</string>
