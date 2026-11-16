@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # The Android SDK that ships with the runner image; its licenses are already accepted.
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
 
@@ -16,10 +19,18 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - uses: android-actions/setup-android@v3
-
+      # android-actions/setup-android is not used: it runs "sdkmanager tools", a package that
+      # no longer exists in the repository, and the job fails before the build starts.
       - name: Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;36.0.0"
+        run: |
+          set -eu
+          sdkmanager="$(ls "$ANDROID_SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -1)"
+          if [ -z "$sdkmanager" ]; then
+            echo "::warning::sdkmanager not found, Gradle will download what it needs"
+            exit 0
+          fi
+          yes | "$sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
+            "platform-tools" "platforms;android-35" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
