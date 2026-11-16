@@ -35,6 +35,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -49,4 +53,6 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    testImplementation("junit:junit:4.13.2")
 }

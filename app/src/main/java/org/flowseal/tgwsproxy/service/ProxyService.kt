@@ -86,12 +86,13 @@ class ProxyService : Service() {
         }
 
         proxyServer = ProxyServer(
-            host = config.host,
-            port = config.port,
-            dcOpt = dcOpt.ifEmpty { mapOf(2 to "149.154.167.220", 4 to "149.154.167.220") },
-            poolSize = config.poolSize,
-            bufKb = config.bufKb,
-            onLog = { msg -> addLog(msg) }
+            org.flowseal.tgwsproxy.proxy.ProxySettings(
+                host = config.host,
+                port = config.port,
+                dcRedirects = dcOpt.ifEmpty { mapOf(2 to "149.154.167.220", 4 to "149.154.167.220") },
+                poolSize = config.poolSize,
+                bufferSize = config.bufKb * 1024,
+            )
         )
         proxyServer!!.start()
         updateNotification("Running on ${config.host}:${config.port}")
