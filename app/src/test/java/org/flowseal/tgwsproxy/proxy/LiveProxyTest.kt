@@ -106,6 +106,23 @@ class LiveProxyTest {
     }
 
     @Test
+    fun throughCloudflareProxy() {
+        // no DC:IP entries and no pool: every DC goes to the fallbacks, CF proxy before TCP
+        val s = startProxy(ProxySettings(dcRedirects = emptyMap(), poolSize = 0, cfproxyH2Media = false))
+        roundTrip(s, 2)
+        roundTrip(s, 4)
+        assert(lines.any { "trying CF proxy" in it })
+        assert(lines.none { "TCP fallback to" in it }) { "fell through to TCP" }
+        assertEquals(2L, server!!.stats.connectionsCfproxy.get())
+    }
+
+    @Test
+    fun domainListFromGitHub() {
+        val list = CfProxyDomains.normalize(CfProxyDomains.parseList(CfProxyDomains.fetch(CfProxyDomains.DOMAINS_URL)))
+        assert(list.size >= 3) { "only ${list.size} domains" }
+    }
+
+    @Test
     fun wrongSecretIsCountedBad() {
         val s = startProxy(ProxySettings(fallbackCfproxy = false))
         val other = s.copy(secretHex = "ffffffffffffffffffffffffffffffff")
